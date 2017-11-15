@@ -58,6 +58,24 @@
         </repository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <name>Sonatype Snapshots Maven Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <name>Sonatype Maven Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>repo.eclipse.org</id>
+            <name>Eclipse SmartHome Repository - Releases</name>
+            <url>https://repo.eclipse.org/content/repositories/smarthome-releases/</url>
+        </repository>
+    </repositories>
+
     <profiles>
         <profile>
             <id>release-no-deploy</id>
@@ -150,25 +168,25 @@
         <dependency>
             <groupId>org.eclipse.smarthome.config</groupId>
             <artifactId>org.eclipse.smarthome.config.core</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0.b6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.smarthome.config</groupId>
             <artifactId>org.eclipse.smarthome.config.discovery</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0.b6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.smarthome.core</groupId>
             <artifactId>org.eclipse.smarthome.core</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0.b6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.smarthome.core</groupId>
             <artifactId>org.eclipse.smarthome.core.thing</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0.b6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
