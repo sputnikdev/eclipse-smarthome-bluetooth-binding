@@ -220,11 +220,15 @@
             <scope>provided</scope>
         </dependency>
 
-
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.sputnikdev</groupId>
+            <artifactId>bluetooth-utils</artifactId>
+            <version>1.8</version>
         </dependency>
         <dependency>
             <groupId>org.sputnikdev</groupId>
