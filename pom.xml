@@ -293,12 +293,12 @@
                         <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
                         <Embed-Directory>lib</Embed-Directory>
                         <Embed-StripGroup>true</Embed-StripGroup>
-                        <Export-Package>org.eclipse.smarthome.binding.bluetooth,org.eclipse.smarthome.binding.bluetooth.handler,
+                        <_exportcontents>org.eclipse.smarthome.binding.bluetooth,org.eclipse.smarthome.binding.bluetooth.handler,
                             org.sputnikdev.bluetooth,
                             org.sputnikdev.bluetooth.manager,
                             org.sputnikdev.bluetooth.manager.transport,
                             org.sputnikdev.bluetooth.gattparser
-                        </Export-Package>
+                        </_exportcontents>
                     </instructions>
                     <niceManifest>true</niceManifest>
                 </configuration>
