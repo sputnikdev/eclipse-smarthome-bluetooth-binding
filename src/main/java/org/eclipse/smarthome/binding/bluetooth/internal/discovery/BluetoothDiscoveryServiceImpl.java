@@ -13,23 +13,28 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
-import org.sputnikdev.bluetooth.manager.*;
+import org.sputnikdev.bluetooth.manager.AdapterDiscoveryListener;
+import org.sputnikdev.bluetooth.manager.BluetoothManager;
+import org.sputnikdev.bluetooth.manager.DeviceDiscoveryListener;
+import org.sputnikdev.bluetooth.manager.DiscoveredAdapter;
+import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
 
 import java.util.HashSet;
 
 /**
+ *
  * @author Vlad Kolotov
  */
 @Component(immediate = true, service = DiscoveryService.class, name = "binding.bluetooth.discovery")
 public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
         implements BluetoothDiscoveryService, DeviceDiscoveryListener, AdapterDiscoveryListener {
 
-    private final static int DISCOVERY_RATE_SEC = 10;
+    private static final int DISCOVERY_RATE_SEC = 10;
 
     private final Logger logger = LoggerFactory.getLogger(BluetoothDiscoveryServiceImpl.class);
     private BluetoothManager bluetoothManager;
 
-    public BluetoothDiscoveryServiceImpl() throws IllegalArgumentException {
+    public BluetoothDiscoveryServiceImpl() {
         super(new HashSet<ThingTypeUID>() {{
             add(BluetoothBindingConstants.THING_TYPE_ADAPTER);
             add(BluetoothBindingConstants.THING_TYPE_GENERIC);
@@ -75,36 +80,35 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
     }
 
     @Override
-    protected synchronized void startScan() {
+    protected void startScan() {
     }
 
     @Override
     protected void startBackgroundDiscovery() {
-        this.bluetoothManager.setDiscoveryRate(DISCOVERY_RATE_SEC);
-        this.bluetoothManager.setRediscover(true);
-        this.bluetoothManager.addAdapterDiscoveryListener(this);
-        this.bluetoothManager.addDeviceDiscoveryListener(this);
-        this.bluetoothManager.start(false);
+        if (!bluetoothManager.isStarted()) {
+            bluetoothManager.start(false);
+        }
     }
 
     @Override
     protected void stopBackgroundDiscovery() {
-        this.bluetoothManager.removeAdapterDiscoveryListener(this);
-        this.bluetoothManager.removeDeviceDiscoveryListener(this);
-        this.bluetoothManager.stop();
+        bluetoothManager.stop();
     }
 
     @Reference
     public void setBluetoothManager(BluetoothManager bluetoothManager) {
         this.bluetoothManager = bluetoothManager;
-        startBackgroundDiscovery();
+        this.bluetoothManager.setDiscoveryRate(DISCOVERY_RATE_SEC);
+        this.bluetoothManager.setRediscover(true);
+        this.bluetoothManager.addAdapterDiscoveryListener(this);
+        this.bluetoothManager.addDeviceDiscoveryListener(this);
     }
 
     protected void unsetBluetoothManager(BluetoothManager bluetoothManager) {
         if (this.bluetoothManager != null) {
             this.bluetoothManager.removeAdapterDiscoveryListener(this);
             this.bluetoothManager.removeDeviceDiscoveryListener(this);
-            stopBackgroundDiscovery();
+            this.bluetoothManager.stop();
         }
         this.bluetoothManager = null;
     }

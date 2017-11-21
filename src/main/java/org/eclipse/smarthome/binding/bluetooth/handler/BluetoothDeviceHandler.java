@@ -1,29 +1,22 @@
-/**
- * Copyright (c) 2014-2016 by the respective copyright holders.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package org.eclipse.smarthome.binding.bluetooth.handler;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.BluetoothSmartDeviceListener;
 import org.sputnikdev.bluetooth.manager.GattService;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -39,7 +32,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
             BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED) {
         @Override Boolean getValue() {
-            return getGovernor().isConnected();
+            return getGovernor().isReady() && getGovernor().isConnected();
         }
     };
 
@@ -52,7 +45,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
             getGovernor().setConnectionControl(value);
         }
         @Override Boolean getDefaultValue() {
-            return BluetoothDeviceHandler.this.initialConnectionControl;
+            return initialConnectionControl;
         }
     };
 

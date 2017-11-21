@@ -1,21 +1,12 @@
-/**
- * Copyright (c) 2014-2016 by the respective copyright holders.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package org.eclipse.smarthome.binding.bluetooth.handler;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 
+
+import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -26,6 +17,10 @@ import org.sputnikdev.bluetooth.manager.AdapterGovernor;
 import org.sputnikdev.bluetooth.manager.AdapterListener;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  *
@@ -47,7 +42,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
     private final SingleChannelHandler<Boolean, OnOffType> poweredHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_POWERED) {
         @Override Boolean getValue() {
-            return getGovernor().isPowered();
+            return getGovernor().isReady() && getGovernor().isPowered();
         }
     };
 
@@ -64,7 +59,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
     private final SingleChannelHandler<Boolean, OnOffType> discoveringHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_DISCOVERING) {
         @Override Boolean getValue() {
-            return getGovernor().isDiscovering();
+            return getGovernor().isReady() && getGovernor().isDiscovering();
         }
     };
 

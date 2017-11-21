@@ -1,20 +1,10 @@
-/**
- * Copyright (c) 2014-2016 by the respective copyright holders.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package org.eclipse.smarthome.binding.bluetooth.handler;
 
-import java.util.Arrays;
-import java.util.Date;
-
+import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
@@ -22,6 +12,9 @@ import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GenericBluetoothDeviceListener;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
+
+import java.util.Arrays;
+import java.util.Date;
 
 /**
  *
@@ -47,7 +40,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     private final IntegerTypeChannelHandler rssiHandler = new IntegerTypeChannelHandler (
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI) {
         @Override Integer getValue() {
-            return (int) getGovernor().getRSSI();
+            return (int) (getGovernor().isReady() ? getGovernor().getRSSI() : 0);
         }
     };
 
@@ -61,7 +54,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     private final BooleanTypeChannelHandler blockedHandler = new BooleanTypeChannelHandler (
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_BLOCKED) {
         @Override Boolean getValue() {
-            return getGovernor().isBlocked();
+            return getGovernor().isReady() && getGovernor().isBlocked();
         }
     };
 
@@ -85,7 +78,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
 
         @Override Integer getDefaultValue() {
-            return GenericBluetoothDeviceHandler.this.initialOnlineTimeout;
+            return initialOnlineTimeout;
         }
     };
 
