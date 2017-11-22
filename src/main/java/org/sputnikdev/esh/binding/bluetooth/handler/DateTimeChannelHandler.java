@@ -1,4 +1,4 @@
-package org.eclipse.smarthome.binding.bluetooth.handler;
+package org.sputnikdev.esh.binding.bluetooth.handler;
 
 import java.util.Calendar;
 import java.util.Date;

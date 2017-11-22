@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package org.eclipse.smarthome.binding.bluetooth.internal;
+package org.sputnikdev.esh.binding.bluetooth.internal;
 
 import java.io.File;
 import java.util.Arrays;
@@ -23,10 +23,10 @@ import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
-import org.eclipse.smarthome.binding.bluetooth.handler.AdapterHandler;
-import org.eclipse.smarthome.binding.bluetooth.handler.BluetoothDeviceHandler;
-import org.eclipse.smarthome.binding.bluetooth.handler.GenericBluetoothDeviceHandler;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.handler.AdapterHandler;
+import org.sputnikdev.esh.binding.bluetooth.handler.BluetoothDeviceHandler;
+import org.sputnikdev.esh.binding.bluetooth.handler.GenericBluetoothDeviceHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -37,10 +37,6 @@ import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.impl.BluetoothManagerFactory;
 import org.sputnikdev.bluetooth.manager.transport.BluetoothObjectFactory;
 import org.sputnikdev.bluetooth.manager.impl.BluetoothObjectFactoryProvider;
-
-import static org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants.THING_TYPE_ADAPTER;
-import static org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants.THING_TYPE_BLE;
-import static org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants.THING_TYPE_GENERIC;
 
 
 /**
@@ -55,7 +51,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     
     private final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS =
             Collections.unmodifiableSet(new HashSet<>(
-                    Arrays.asList(THING_TYPE_ADAPTER, THING_TYPE_GENERIC, THING_TYPE_BLE)));
+                    Arrays.asList(BluetoothBindingConstants.THING_TYPE_ADAPTER, BluetoothBindingConstants.THING_TYPE_GENERIC, BluetoothBindingConstants.THING_TYPE_BLE)));
 
     private BluetoothManager bluetoothManager;
     private BluetoothGattParser gattParser;
@@ -110,14 +106,14 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
-        if (thingTypeUID.equals(THING_TYPE_ADAPTER)) {
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_ADAPTER)) {
             return new AdapterHandler(thing, itemRegistry, bluetoothManager, gattParser);
-        } else if (thingTypeUID.equals(THING_TYPE_GENERIC)) {
+        } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)) {
             GenericBluetoothDeviceHandler genericBluetoothDeviceHandler =
                     new GenericBluetoothDeviceHandler(thing, itemRegistry, bluetoothManager, gattParser);
             genericBluetoothDeviceHandler.setInitialOnlineTimeout(initialOnlineTimeout);
             return genericBluetoothDeviceHandler;
-        } else if (thingTypeUID.equals(THING_TYPE_BLE)) {
+        } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)) {
             BluetoothDeviceHandler bluetoothDeviceHandler =
                     new BluetoothDeviceHandler(thing, itemRegistry, bluetoothManager, gattParser);
             bluetoothDeviceHandler.setInitialOnlineTimeout(initialOnlineTimeout);

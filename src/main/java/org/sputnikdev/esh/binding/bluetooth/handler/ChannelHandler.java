@@ -1,4 +1,4 @@
-package org.eclipse.smarthome.binding.bluetooth.handler;
+package org.sputnikdev.esh.binding.bluetooth.handler;
 
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.types.Command;

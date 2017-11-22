@@ -1,11 +1,9 @@
-package org.eclipse.smarthome.binding.bluetooth.internal;
+package org.sputnikdev.esh.binding.bluetooth.internal;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.sputnikdev.bluetooth.URL;

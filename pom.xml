@@ -315,7 +315,9 @@
                         <Embed-Dependency>*;scope=compile|runtime;inline=false</Embed-Dependency>
                         <Embed-Directory>lib</Embed-Directory>
                         <Embed-StripGroup>true</Embed-StripGroup>
-                        <_exportcontents>org.eclipse.smarthome.binding.bluetooth,org.eclipse.smarthome.binding.bluetooth.handler,
+                        <_exportcontents>org.sputnikdev.esh.binding.bluetooth,
+                            org.sputnikdev.esh.binding.bluetooth.handler,
+                            org.sputnikdev.esh.binding.bluetooth.discovery,
                             org.sputnikdev.bluetooth,
                             org.sputnikdev.bluetooth.manager,
                             org.sputnikdev.bluetooth.manager.transport,

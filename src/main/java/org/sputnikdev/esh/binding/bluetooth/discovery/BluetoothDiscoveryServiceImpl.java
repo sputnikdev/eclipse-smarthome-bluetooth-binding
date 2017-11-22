@@ -1,8 +1,5 @@
-package org.eclipse.smarthome.binding.bluetooth.internal.discovery;
+package org.sputnikdev.esh.binding.bluetooth.discovery;
 
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
-import org.eclipse.smarthome.binding.bluetooth.BluetoothDiscoveryService;
-import org.eclipse.smarthome.binding.bluetooth.internal.BluetoothUtils;
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
@@ -18,6 +15,8 @@ import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.DeviceDiscoveryListener;
 import org.sputnikdev.bluetooth.manager.DiscoveredAdapter;
 import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.HashSet;
 
@@ -27,7 +26,7 @@ import java.util.HashSet;
  */
 @Component(immediate = true, service = DiscoveryService.class, name = "binding.bluetooth.discovery")
 public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
-        implements BluetoothDiscoveryService, DeviceDiscoveryListener, AdapterDiscoveryListener {
+        implements DeviceDiscoveryListener, AdapterDiscoveryListener {
 
     private static final int DISCOVERY_RATE_SEC = 10;
 

@@ -1,8 +1,8 @@
-package org.eclipse.smarthome.binding.bluetooth.handler;
+package org.sputnikdev.esh.binding.bluetooth.handler;
 
 
 
-import org.eclipse.smarthome.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
