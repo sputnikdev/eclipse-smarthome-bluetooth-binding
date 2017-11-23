@@ -44,6 +44,22 @@
             <description>If enabled, connection is kept on for newly added Bluetooth devices, otherwise off. Can be customized for each Bluetooth device.</description>
             <default>true</default>
         </parameter>
+        <parameter name="serial_port_regex" type="text">
+            <label>Regular expression for autodiscovery of BlueGida adapters (serial ports)</label>
+            <description><![CDATA[
+                WARNING! (ACHTUNG!): It is very important not to make the regular expression too wide so that ONLY BlueGiga devices/ serial ports are matched by the regular expression. If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidently matched by the regular expression. USE THIS FEATURE AT YOUR OWN RISK.<br/>
+                Regular expression examples:<br/>
+                <ul>
+                    <li>Defining some specific serial ports (preferrable option): (/dev/ttyACM1)|(/dev/ttyACM2)</li>
+                    <li>Matching all serial ports on Linux: ((/dev/ttyACM)[0-9]{1,3})</li>
+                    <li>Matching all serial ports on OSX: (/dev/tty.(usbmodem).*)</li>
+                    <li>Matching all serial ports on Windows: ((COM)[0-9]{1,3})</li>
+                    <li>Matching all serial ports with some exclusions: (?!/dev/ttyACM0|/dev/ttyACM5)((/dev/ttyACM)[0-9]{1,3})</li>
+                    <li>Default regular expression is to match nothing: (?!)</li>
+                </ul>
+            ]]></description>
+            <default>(?!)</default>
+        </parameter>
     </config-description>
 
 </binding:binding>

@@ -21,6 +21,7 @@ public class BluetoothBindingConstants {
     public static final String BINDING_CONFIG_UPDATE_RATE = "update_rate";
     public static final String BINDING_CONFIG_INITIAL_ONLINE_TIMEOUT = "initial_online_timeout";
     public static final String BINDING_CONFIG_INITIAL_CONNECTION_CONTROL = "initial_connection_control";
+    public static final String BINDING_CONFIG_SERIAL_PORT_REGEX = "serial_port_regex";
 
 
     public static final String BINDING_ID = "bluetooth";
