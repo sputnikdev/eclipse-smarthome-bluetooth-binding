@@ -87,6 +87,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         super(thing, itemRegistry, bluetoothManager, parser);
         addChannelHandlers(Arrays.asList(readyHandler, lastChangedHandler, rssiHandler, onlineHandler,
                 blockedHandler, blockedControlHandler, onlineTimeoutHandler));
+        thing.setLocation("Bluetooth Devices");
     }
 
     @Override
