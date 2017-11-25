@@ -34,23 +34,20 @@
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
 
-        <config-description>
-        </config-description>
-
     </thing-type>
 
     <channel-type id="ready">
         <item-type>Switch</item-type>
         <label>Ready</label>
         <description>Indicates whether bluetooth adapter/device is ready for interaction</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="connected">
         <item-type>Switch</item-type>
         <label>Connected</label>
         <description>Indicates whether device is connected</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="connection-control">
@@ -63,28 +60,28 @@
         <item-type>Switch</item-type>
         <label>Online</label>
         <description>Indicates whether device is in range</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="rssi">
         <item-type>Number</item-type>
         <label>RSSI</label>
         <description>Received signal strength indicator</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="last-updated">
         <item-type>DateTime</item-type>
         <label>Last updated</label>
         <description>Date and time of the last activity</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="powered">
         <item-type>Switch</item-type>
         <label>Powered</label>
         <description>Indicates whether bluetooth adapter is powered</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="powered-control">
@@ -97,7 +94,7 @@
         <item-type>Switch</item-type>
         <label>Discovering</label>
         <description>Indicates whether bluetooth adapter is in discovering state</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="discovering-control">
@@ -110,7 +107,7 @@
         <item-type>Switch</item-type>
         <label>Blocked</label>
         <description>Indicates whether device is blocked</description>
-        <state readOnly="true"></state>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="blocked-control">
