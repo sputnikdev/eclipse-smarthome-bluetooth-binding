@@ -39,23 +39,6 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         }
     };
 
-    private final SingleChannelHandler<Boolean, OnOffType> poweredHandler = new BooleanTypeChannelHandler(
-            AdapterHandler.this, BluetoothBindingConstants.CHANNEL_POWERED) {
-        @Override Boolean getValue() {
-            return getGovernor().isReady() && getGovernor().isPowered();
-        }
-    };
-
-    private final SingleChannelHandler<Boolean, OnOffType> poweredControlHandler = new BooleanTypeChannelHandler(
-            AdapterHandler.this, BluetoothBindingConstants.CHANNEL_POWERED_CONTROL, true) {
-        @Override Boolean getValue() {
-            return getGovernor().getPoweredControl();
-        }
-        @Override void updateThing(Boolean value) {
-            getGovernor().setPoweredControl(value);
-        }
-    };
-
     private final SingleChannelHandler<Boolean, OnOffType> discoveringHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_DISCOVERING) {
         @Override Boolean getValue() {
@@ -77,7 +60,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
             BluetoothManager bluetoothManager, BluetoothGattParser parser) {
         super(thing, itemRegistry, bluetoothManager, parser);
         addChannelHandlers(Arrays.asList(
-                readyHandler, discoveringHandler, discoveringControlHandler, poweredHandler, poweredControlHandler));
+                readyHandler, discoveringHandler, discoveringControlHandler));
         thing.setLocation("Bluetooth Adapters");
     }
 
@@ -93,13 +76,11 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
         lastUpdatedChanged(new Date());
 
-        updateStatus(ThingStatus.ONLINE);
+        updateStatus(adapterGovernor.isReady() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
     }
 
     @Override
-    public void powered(boolean powered) {
-        poweredHandler.updateChannel(powered);
-    }
+    public void powered(boolean powered) { /* do nothing for now */}
 
     @Override
     public void discovering(boolean discovering) {
@@ -109,6 +90,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
     @Override
     public void ready(boolean ready) {
         readyHandler.updateChannel(ready);
+        updateStatus(ready ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
     }
 
     @Override

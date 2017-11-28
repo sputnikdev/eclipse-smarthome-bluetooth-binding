@@ -9,8 +9,6 @@
         <description>Bluetooth Adapter</description>
         <channels>
             <channel id="ready" typeId="ready"/>
-            <channel id="powered" typeId="powered"/>
-            <channel id="powered-control" typeId="powered-control"/>
             <channel id="discovering" typeId="discovering"/>
             <channel id="discovering-control" typeId="discovering-control"/>
             <channel id="last-updated" typeId="last-updated"/>
