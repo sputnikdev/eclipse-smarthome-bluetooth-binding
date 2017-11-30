@@ -1,8 +1,5 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.thing.ChannelUID;
@@ -12,13 +9,16 @@ import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
-import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothGovernor;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Vlad Kolotov
@@ -57,15 +57,6 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         synchronized (channelHandlers) {
             for (ChannelHandler channelHandler : channelHandlers) {
                 channelHandler.handleCommand(channelUID, command);
-            }
-        }
-    }
-
-    @Override
-    public void handleUpdate(ChannelUID channelUID, State newState) {
-        synchronized (channelHandlers) {
-            for (ChannelHandler channelHandler : channelHandlers) {
-                channelHandler.handleUpdate(channelUID, newState);
             }
         }
     }

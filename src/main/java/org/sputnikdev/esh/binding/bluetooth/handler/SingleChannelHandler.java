@@ -51,9 +51,6 @@ abstract class SingleChannelHandler<V, S extends Command> implements ChannelHand
     }
 
     @Override
-    public void handleUpdate(ChannelUID channelUID, State newState) { }
-
-    @Override
     public URL getURL() {
         return this.handler.getURL();
     }

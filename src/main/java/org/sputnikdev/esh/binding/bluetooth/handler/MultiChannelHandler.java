@@ -1,9 +1,5 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 import org.eclipse.smarthome.core.items.Item;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.library.types.DecimalType;
@@ -15,8 +11,6 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
-import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
-import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
@@ -27,6 +21,12 @@ import org.sputnikdev.bluetooth.gattparser.GattRequest;
 import org.sputnikdev.bluetooth.manager.CharacteristicGovernor;
 import org.sputnikdev.bluetooth.manager.ValueListener;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Vlad Kolotov
@@ -63,17 +63,17 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
     }
 
     @Override
-    public void handleCommand(ChannelUID channelUID, Command command) { }
-
-    @Override
-    public void handleUpdate(ChannelUID channelUID, State newState) {
-        String fieldID = channelUID.getIdWithoutGroup();
-        String characteristicID = BluetoothUtils.getChannelUID(url);
-        if (fieldID.startsWith(characteristicID)) {
-            Channel fieldChannel = this.handler.getThing().getChannel(channelUID.getIdWithoutGroup());
-            if (fieldChannel != null) {
-                String fieldName = fieldChannel.getProperties().get(BluetoothBindingConstants.PROPERTY_FIELD_NAME);
-                updateThing(fieldName, newState);
+    public void handleCommand(ChannelUID channelUID, Command command) {
+        if (command instanceof State) {
+            State state = (State) command;
+            String fieldID = channelUID.getIdWithoutGroup();
+            String characteristicID = BluetoothUtils.getChannelUID(url);
+            if (fieldID.startsWith(characteristicID)) {
+                Channel fieldChannel = handler.getThing().getChannel(channelUID.getIdWithoutGroup());
+                if (fieldChannel != null) {
+                    String fieldName = fieldChannel.getProperties().get(BluetoothBindingConstants.PROPERTY_FIELD_NAME);
+                    updateThing(fieldName, state);
+                }
             }
         }
     }
@@ -151,7 +151,7 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
         } else if (holder.getField().getFormat().isDecimal()) {
             DecimalType decimalType = (DecimalType) convert(state, DecimalType.class);
             holder.setDouble(decimalType.doubleValue());
-        } if (holder.getField().getFormat().isString()) {
+        } else if (holder.getField().getFormat().isString()) {
             StringType textType = (StringType) convert(state, StringType.class);
             holder.setString(textType.toString());
         }
@@ -162,7 +162,7 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
     }
 
     private Channel getChannel(FieldHolder fieldHolder) {
-        return this.handler.getThing().getChannel(
+        return handler.getThing().getChannel(
                 BluetoothUtils.getChannelUID(url.copyWithField(fieldHolder.getField().getName())));
     }
 
