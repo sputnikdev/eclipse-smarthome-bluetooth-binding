@@ -11,6 +11,7 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -29,14 +30,13 @@ import org.sputnikdev.esh.binding.bluetooth.handler.BluetoothDeviceHandler;
 import org.sputnikdev.esh.binding.bluetooth.handler.GenericBluetoothDeviceHandler;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Dictionary;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -49,11 +49,13 @@ import java.util.Set;
         configurationPolicy = ConfigurationPolicy.OPTIONAL)
 public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
-    private final static Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS =
-            Collections.unmodifiableSet(new HashSet<>(
-                    Arrays.asList(BluetoothBindingConstants.THING_TYPE_ADAPTER, BluetoothBindingConstants.THING_TYPE_GENERIC, BluetoothBindingConstants.THING_TYPE_BLE)));
+    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS =
+        Stream.of(BluetoothBindingConstants.THING_TYPE_ADAPTER, BluetoothBindingConstants.THING_TYPE_GENERIC,
+            BluetoothBindingConstants.THING_TYPE_BLE).collect(Collectors.toSet());
 
+    private ServiceRegistration<BluetoothManager> bluetoothManagerServiceRegistration;
     private BluetoothManager bluetoothManager;
+    private ServiceRegistration<BluetoothGattParser> bluetoothGattParserServiceRegistration;
     private BluetoothGattParser gattParser;
     private ItemRegistry itemRegistry;
 
@@ -61,6 +63,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     private boolean initialConnectionControl = BluetoothBindingConstants.INITIAL_CONNECTION_CONTROL;
     private Map<String, Object> config;
 
+    @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
@@ -97,15 +100,19 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         if (extensionFolderFile.exists() && extensionFolderFile.isDirectory()) {
             gattParser.loadExtensionsFromFolder(extensionFolder);
         }
-        bundleContext.registerService(BluetoothManager.class.getName(), bluetoothManager, new Hashtable<>());
-        bundleContext.registerService(BluetoothGattParser.class.getName(), gattParser, new Hashtable<>());
+        bluetoothManagerServiceRegistration = (ServiceRegistration<BluetoothManager>)
+            bundleContext.registerService(BluetoothManager.class.getName(), bluetoothManager, new Hashtable<>());
+        bluetoothGattParserServiceRegistration = (ServiceRegistration<BluetoothGattParser>)
+            bundleContext.registerService(BluetoothGattParser.class.getName(), gattParser, new Hashtable<>());
     }
-
-
 
     @Override
     protected void deactivate(ComponentContext componentContext) {
+        bluetoothManagerServiceRegistration.unregister();
+        bluetoothGattParserServiceRegistration.unregister();
         BluetoothManagerFactory.dispose(bluetoothManager);
+        bluetoothManager = null;
+        gattParser = null;
     }
 
     @Override
