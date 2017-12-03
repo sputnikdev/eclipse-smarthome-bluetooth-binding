@@ -11,8 +11,6 @@
             <channel id="ready" typeId="ready"/>
             <channel id="online" typeId="online"/>
             <channel id="online-timeout" typeId="online-timeout"/>
-            <channel id="blocked" typeId="blocked"/>
-            <channel id="blocked-control" typeId="blocked-control"/>
             <channel id="rssi" typeId="rssi"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
@@ -26,8 +24,6 @@
             <channel id="ready" typeId="ready"/>
             <channel id="online" typeId="online"/>
             <channel id="online-timeout" typeId="online-timeout"/>
-            <channel id="blocked" typeId="blocked"/>
-            <channel id="blocked-control" typeId="blocked-control"/>
             <channel id="connected" typeId="connected"/>
             <channel id="connection-control" typeId="connection-control"/>
             <channel id="rssi" typeId="rssi"/>
@@ -101,19 +97,6 @@
         <item-type>Switch</item-type>
         <label>Discovering control</label>
         <description>Controls whether bluetooth adapter is in discovering state</description>
-    </channel-type>
-
-    <channel-type id="blocked">
-        <item-type>Switch</item-type>
-        <label>Blocked</label>
-        <description>Indicates whether device is blocked</description>
-        <state readOnly="true"/>
-    </channel-type>
-
-    <channel-type id="blocked-control">
-        <item-type>Switch</item-type>
-        <label>Blocked control</label>
-        <description>Controls whether device is blocked</description>
     </channel-type>
 
     <channel-type id="online-timeout">
