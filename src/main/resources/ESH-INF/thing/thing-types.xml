@@ -12,6 +12,9 @@
             <channel id="online" typeId="online"/>
             <channel id="online-timeout" typeId="online-timeout"/>
             <channel id="rssi" typeId="rssi"/>
+            <channel id="rssi-filtering" typeId="rssi-filtering"/>
+            <channel id="rssi-filtering-process-noise" typeId="rssi-filtering-process-noise"/>
+            <channel id="rssi-filtering-measurement-noise" typeId="rssi-filtering-measurement-noise"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
     </thing-type>
@@ -27,6 +30,9 @@
             <channel id="connected" typeId="connected"/>
             <channel id="connection-control" typeId="connection-control"/>
             <channel id="rssi" typeId="rssi"/>
+            <channel id="rssi-filtering" typeId="rssi-filtering"/>
+            <channel id="rssi-filtering-process-noise" typeId="rssi-filtering-process-noise"/>
+            <channel id="rssi-filtering-measurement-noise" typeId="rssi-filtering-measurement-noise"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
 
@@ -64,6 +70,24 @@
         <label>RSSI</label>
         <description>Received signal strength indicator</description>
         <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="rssi-filtering">
+        <item-type>Switch</item-type>
+        <label>RSSI filtering</label>
+        <description>Controls whether RSSI is filtered (smoothed)</description>
+    </channel-type>
+
+    <channel-type id="rssi-filtering-process-noise">
+        <item-type>Number</item-type>
+        <label>RSSI filter process noise</label>
+        <description>RSSI Kalman filter process noise</description>
+    </channel-type>
+
+    <channel-type id="rssi-filtering-measurement-noise">
+        <item-type>Number</item-type>
+        <label>RSSI filter measurement noise</label>
+        <description>RSSI Kalman filter measurement noise</description>
     </channel-type>
 
     <channel-type id="last-updated">

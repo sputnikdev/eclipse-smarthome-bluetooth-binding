@@ -1,20 +1,22 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sputnikdev.bluetooth.RssiKalmanFilter;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GenericBluetoothDeviceListener;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  *
@@ -37,21 +39,57 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     private final DateTimeChannelHandler lastChangedHandler =
             new DateTimeChannelHandler(this, BluetoothBindingConstants.CHANNEL_LAST_UPDATED);
 
-    private final IntegerTypeChannelHandler rssiHandler = new IntegerTypeChannelHandler (
+    private final IntegerTypeChannelHandler rssiHandler = new IntegerTypeChannelHandler(
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI) {
         @Override Integer getValue() {
             return (int) (getGovernor().isReady() ? getGovernor().getRSSI() : 0);
         }
     };
 
-    private final BooleanTypeChannelHandler onlineHandler = new BooleanTypeChannelHandler (
+    private final SingleChannelHandler<Boolean, OnOffType> rssiFilteringHandler = new BooleanTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING, true) {
+        @Override Boolean getValue() {
+            return getGovernor().isRssiFilteringEnabled();
+        }
+        @Override void updateThing(Boolean value) {
+            getGovernor().setRssiFilteringEnabled(value);
+        }
+    };
+
+    private final DoubleTypeChannelHandler rssiFilteringMeasurementNoiseHandler = new DoubleTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE,
+        false) {
+        @Override Double getValue() {
+            return Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
+                .map(RssiKalmanFilter::getMeasurementNoise).orElse(0.0);
+        }
+        @Override void updateThing(Double value) {
+            Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
+                .ifPresent(filter -> filter.setMeasurementNoise(value));
+        }
+    };
+
+    private final DoubleTypeChannelHandler rssiFilteringProcessNoiseHandler = new DoubleTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_PROCESS_NOISE,
+        false) {
+        @Override Double getValue() {
+            return Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
+                .map(RssiKalmanFilter::getProcessNoise).orElse(0.0);
+        }
+        @Override void updateThing(Double value) {
+            Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
+                .ifPresent(filter -> filter.setProcessNoise(value));
+        }
+    };
+
+    private final BooleanTypeChannelHandler onlineHandler = new BooleanTypeChannelHandler(
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ONLINE) {
         @Override Boolean getValue() {
             return getGovernor().isOnline();
         }
     };
 
-    private final BooleanTypeChannelHandler blockedHandler = new BooleanTypeChannelHandler (
+    private final BooleanTypeChannelHandler blockedHandler = new BooleanTypeChannelHandler(
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_BLOCKED) {
         @Override Boolean getValue() {
             return getGovernor().isReady() && getGovernor().isBlocked();
@@ -68,7 +106,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     };
 
-    private final IntegerTypeChannelHandler onlineTimeoutHandler = new IntegerTypeChannelHandler (
+    private final IntegerTypeChannelHandler onlineTimeoutHandler = new IntegerTypeChannelHandler(
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ONLINE_TIMEOUT, true) {
         @Override Integer getValue() {
             return getGovernor().getOnlineTimeout();
@@ -85,8 +123,9 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     public GenericBluetoothDeviceHandler(Thing thing, ItemRegistry itemRegistry,
             BluetoothManager bluetoothManager, BluetoothGattParser parser) {
         super(thing, itemRegistry, bluetoothManager, parser);
-        addChannelHandlers(Arrays.asList(readyHandler, lastChangedHandler, rssiHandler, onlineHandler,
-                blockedHandler, blockedControlHandler, onlineTimeoutHandler));
+        addChannelHandlers(Arrays.asList(readyHandler, lastChangedHandler, rssiHandler, rssiFilteringHandler,
+            rssiFilteringMeasurementNoiseHandler, rssiFilteringProcessNoiseHandler,
+            onlineHandler, blockedHandler, blockedControlHandler, onlineTimeoutHandler));
         thing.setLocation("Bluetooth Devices");
     }
 
@@ -96,6 +135,13 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         getGovernor().addGenericBluetoothDeviceListener(this);
         getGovernor().addGovernorListener(this);
         updateStatus(ThingStatus.ONLINE);
+    }
+
+    @Override
+    public void dispose() {
+        getGovernor().removeGenericBluetoothDeviceListener(this);
+        getGovernor().removeGovernorListener(this);
+        super.dispose();
     }
 
     @Override

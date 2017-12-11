@@ -1,6 +1,5 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Channel;
@@ -13,6 +12,7 @@ import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.BluetoothSmartDeviceListener;
 import org.sputnikdev.bluetooth.manager.GattService;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
 import java.util.Collection;
 import java.util.List;
@@ -66,6 +66,12 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         getGovernor().addBluetoothSmartDeviceListener(this);
 
         updateStatus(ThingStatus.ONLINE);
+    }
+
+    @Override
+    public void dispose() {
+        getGovernor().removeBluetoothSmartDeviceListener(this);
+        super.dispose();
     }
 
     @Override

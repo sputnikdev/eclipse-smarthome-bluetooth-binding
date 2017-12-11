@@ -22,6 +22,7 @@ public class BluetoothBindingConstants {
     public static final String BINDING_CONFIG_INITIAL_ONLINE_TIMEOUT = "initial_online_timeout";
     public static final String BINDING_CONFIG_INITIAL_CONNECTION_CONTROL = "initial_connection_control";
     public static final String BINDING_CONFIG_SERIAL_PORT_REGEX = "serial_port_regex";
+    public static final String BINDING_CONFIG_EXPERT_MODE = "expert_mode";
 
 
     public static final String BINDING_ID = "bluetooth";
@@ -35,6 +36,9 @@ public class BluetoothBindingConstants {
     public static final String CHANNEL_CHARACTERISTIC = "characteristic";
     public static final String CHANNEL_FIELD = "field";
     public static final String CHANNEL_RSSI = "rssi";
+    public static final String CHANNEL_RSSI_FILTERING = "rssi-filtering";
+    public static final String CHANNEL_RSSI_FILTERING_PROCESS_NOISE = "rssi-filtering-process-noise";
+    public static final String CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE = "rssi-filtering-measurement-noise";
     public static final String CHANNEL_LAST_UPDATED = "last-updated";
     public static final String CHANNEL_CONNECTED = "connected";
     public static final String CHANNEL_CONNECTION_CONTROL = "connection-control";

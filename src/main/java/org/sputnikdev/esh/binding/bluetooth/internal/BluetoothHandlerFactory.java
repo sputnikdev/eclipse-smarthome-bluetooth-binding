@@ -74,6 +74,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         Dictionary<String, Object> properties = componentContext.getProperties();
         String extensionFolder = (String) properties.get(BluetoothBindingConstants.BINDING_CONFIG_EXTENSION_FOLDER);
         String refreshRate = (String) properties.get(BluetoothBindingConstants.BINDING_CONFIG_UPDATE_RATE);
+        Boolean expertMode = (Boolean) properties.get(BluetoothBindingConstants.BINDING_CONFIG_EXPERT_MODE);
         initialOnlineTimeout = NumberUtils.toInt(
                 (String) properties.get(BluetoothBindingConstants.BINDING_CONFIG_INITIAL_ONLINE_TIMEOUT),
                 BluetoothBindingConstants.INITIAL_ONLINE_TIMEOUT);
@@ -95,6 +96,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         if (refreshRate != null && NumberUtils.isNumber(refreshRate)) {
             bluetoothManager.setRefreshRate(NumberUtils.toInt(refreshRate));
         }
+        bluetoothManager.setSharedMode(!BooleanUtils.toBoolean(expertMode));
         gattParser = BluetoothGattParserFactory.getDefault();
         File extensionFolderFile = new File(extensionFolder);
         if (extensionFolderFile.exists() && extensionFolderFile.isDirectory()) {

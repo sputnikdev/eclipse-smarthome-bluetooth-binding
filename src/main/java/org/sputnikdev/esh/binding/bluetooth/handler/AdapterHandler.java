@@ -1,8 +1,6 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
 
-
-import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
@@ -17,6 +15,7 @@ import org.sputnikdev.bluetooth.manager.AdapterGovernor;
 import org.sputnikdev.bluetooth.manager.AdapterListener;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -77,6 +76,13 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         lastUpdatedChanged(new Date());
 
         updateStatus(adapterGovernor.isReady() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
+    }
+
+    @Override
+    public void dispose() {
+        getGovernor().removeAdapterListener(this);
+        getGovernor().removeGovernorListener(this);
+        super.dispose();
     }
 
     @Override
