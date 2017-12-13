@@ -22,4 +22,9 @@ class BooleanTypeChannelHandler extends SingleChannelHandler<Boolean, OnOffType>
     @Override OnOffType convert(Boolean value) {
         return value != null && value ? OnOffType.ON : OnOffType.OFF;
     }
+
+    @Override
+    Boolean load(Object stored) {
+        return stored instanceof Boolean ? (Boolean) stored : null;
+    }
 }

@@ -15,6 +15,10 @@
             <channel id="rssi-filtering" typeId="rssi-filtering"/>
             <channel id="rssi-filtering-process-noise" typeId="rssi-filtering-process-noise"/>
             <channel id="rssi-filtering-measurement-noise" typeId="rssi-filtering-measurement-noise"/>
+            <channel id="tx-power" typeId="tx-power"/>
+            <channel id="tx-power-measured" typeId="tx-power-measured"/>
+            <channel id="signal-propagation-exponent" typeId="signal-propagation-exponent"/>
+            <channel id="estimated-distance" typeId="estimated-distance"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
     </thing-type>
@@ -33,6 +37,10 @@
             <channel id="rssi-filtering" typeId="rssi-filtering"/>
             <channel id="rssi-filtering-process-noise" typeId="rssi-filtering-process-noise"/>
             <channel id="rssi-filtering-measurement-noise" typeId="rssi-filtering-measurement-noise"/>
+            <channel id="tx-power" typeId="tx-power"/>
+            <channel id="tx-power-measured" typeId="tx-power-measured"/>
+            <channel id="signal-propagation-exponent" typeId="signal-propagation-exponent"/>
+            <channel id="estimated-distance" typeId="estimated-distance"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
 
@@ -88,6 +96,37 @@
         <item-type>Number</item-type>
         <label>RSSI filter measurement noise</label>
         <description>RSSI Kalman filter measurement noise</description>
+    </channel-type>
+
+    <channel-type id="tx-power">
+        <item-type>Number</item-type>
+        <label>Tx Power</label>
+        <description>Actual (manufacturer defined) TX power of the device. Note: some bluetooth devices do not adverise its TX power</description>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="tx-power-measured">
+        <item-type>Number</item-type>
+        <label>Measured Tx Power</label>
+        <description>Measured/estimated (user defined) TX power of the device that is measured 1 meter away from the adapter</description>
+    </channel-type>
+
+    <channel-type id="estimated-distance">
+        <item-type>Number</item-type>
+        <label>Estimated distance</label>
+        <description>Estimated (user defined) distance between this device and the adapter. Either measured or actual
+            TX power must be available for the estimation, otherwise the resulting value equals 0.
+            The calculation is based on the logarithmetic function: d = 10 ^ ((TxPower - RSSI) / 10n);
+            where n ranges from 2 to 4 (environemnt specific factor, e.g. 2 open plan -> 4 indoor)</description>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="signal-propagation-exponent">
+        <item-type>Number</item-type>
+        <label>Signal propagation exponent</label>
+        <description>Estimated (used defined) signal propagation exponent. It is used in distance calculation.
+            This factor is specific to the environment, i.e. how efficient the signal passes through obsticles.
+            Normally it ranges from 2.0 (outdoors, no obsticles) to 4.0 (indoors, walls and furniture).</description>
     </channel-type>
 
     <channel-type id="last-updated">

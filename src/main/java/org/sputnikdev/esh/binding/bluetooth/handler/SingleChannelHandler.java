@@ -1,7 +1,5 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import java.math.BigDecimal;
-
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.types.Command;
@@ -85,6 +83,7 @@ abstract class SingleChannelHandler<V, S extends Command> implements ChannelHand
 
     abstract V convert(S command);
     abstract S convert(V value);
+    abstract V load(Object stored);
 
     void init(V value) {
         updateThing(value);
@@ -104,13 +103,10 @@ abstract class SingleChannelHandler<V, S extends Command> implements ChannelHand
         V result = null;
 
         // Only Boolean, String and BigDecimal values are supported (this is what OH returns for binding configs)
-        Object stored = handler.getConfig().get(this.channelID);
-        if (stored instanceof BigDecimal) {
-            result = (V) (Integer) ((BigDecimal) stored).intValue();
-        } else if (stored instanceof Boolean || stored instanceof String) {
-            result = (V) stored;
+        Object stored = handler.getConfig().get(channelID);
+        if (stored != null) {
+            result = load(stored);
         }
-
         if (result == null) {
             result = getDefaultValue();
         }

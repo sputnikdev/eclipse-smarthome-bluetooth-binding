@@ -2,6 +2,8 @@ package org.sputnikdev.esh.binding.bluetooth.handler;
 
 import org.eclipse.smarthome.core.library.types.DecimalType;
 
+import java.math.BigDecimal;
+
 /**
  * @author Vlad Kolotov
  */
@@ -20,6 +22,10 @@ class DoubleTypeChannelHandler extends SingleChannelHandler<Double, DecimalType>
     }
 
     @Override DecimalType convert(Double value) {
-        return new DecimalType(value);
+        return value != null ? new DecimalType(value) : null;
+    }
+
+    @Override Double load(Object stored) {
+        return stored instanceof BigDecimal ? ((BigDecimal) stored).doubleValue() : null;
     }
 }

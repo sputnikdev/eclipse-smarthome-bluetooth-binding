@@ -39,6 +39,10 @@ public class BluetoothBindingConstants {
     public static final String CHANNEL_RSSI_FILTERING = "rssi-filtering";
     public static final String CHANNEL_RSSI_FILTERING_PROCESS_NOISE = "rssi-filtering-process-noise";
     public static final String CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE = "rssi-filtering-measurement-noise";
+    public static final String CHANNEL_TX_POWER = "tx-power";
+    public static final String CHANNEL_TX_POWER_MEASURED = "tx-power-measured";
+    public static final String CHANNEL_SIGNAL_PROPAGATION_EXPONENT = "signal-propagation-exponent";
+    public static final String CHANNEL_ESTIMATED_DISTANCE = "estimated-distance";
     public static final String CHANNEL_LAST_UPDATED = "last-updated";
     public static final String CHANNEL_CONNECTED = "connected";
     public static final String CHANNEL_CONNECTION_CONTROL = "connection-control";

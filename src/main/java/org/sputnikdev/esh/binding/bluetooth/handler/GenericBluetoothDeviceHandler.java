@@ -42,7 +42,13 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     private final IntegerTypeChannelHandler rssiHandler = new IntegerTypeChannelHandler(
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI) {
         @Override Integer getValue() {
-            return (int) (getGovernor().isReady() ? getGovernor().getRSSI() : 0);
+            if (getGovernor().isReady()) {
+                int rssi = getGovernor().getRSSI();
+                if (rssi != 0) {
+                    return rssi;
+                }
+            }
+            return null;
         }
     };
 
@@ -57,8 +63,8 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     };
 
     private final DoubleTypeChannelHandler rssiFilteringMeasurementNoiseHandler = new DoubleTypeChannelHandler(
-        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE,
-        false) {
+        GenericBluetoothDeviceHandler.this,
+        BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE, true) {
         @Override Double getValue() {
             return Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
                 .map(RssiKalmanFilter::getMeasurementNoise).orElse(0.0);
@@ -71,7 +77,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     private final DoubleTypeChannelHandler rssiFilteringProcessNoiseHandler = new DoubleTypeChannelHandler(
         GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_PROCESS_NOISE,
-        false) {
+        true) {
         @Override Double getValue() {
             return Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
                 .map(RssiKalmanFilter::getProcessNoise).orElse(0.0);
@@ -79,6 +85,50 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         @Override void updateThing(Double value) {
             Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
                 .ifPresent(filter -> filter.setProcessNoise(value));
+        }
+    };
+
+    private final IntegerTypeChannelHandler txPowerHandler = new IntegerTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_TX_POWER) {
+        @Override Integer getValue() {
+            return getGovernor().isReady() ? (int) getGovernor().getTxPower() : null;
+        }
+    };
+
+    private final IntegerTypeChannelHandler txPowerMeasured = new IntegerTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_TX_POWER_MEASURED,
+        true) {
+        @Override Integer getValue() {
+            return (int) getGovernor().getMeasuredTxPower();
+        }
+        @Override void updateThing(Integer value) {
+            getGovernor().setMeasuredTxPower(value != null ? (short) value.intValue() : 0);
+            estimatedDistance.updateChannel(estimatedDistance.getValue());
+        }
+    };
+
+    private final DoubleTypeChannelHandler signalPropagationExponentHandler = new DoubleTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_SIGNAL_PROPAGATION_EXPONENT,
+        true) {
+        @Override Double getValue() {
+            return getGovernor().getSignalPropagationExponent();
+        }
+        @Override void updateThing(Double value) {
+            getGovernor().setSignalPropagationExponent(value);
+            estimatedDistance.updateChannel(estimatedDistance.getValue());
+        }
+    };
+
+    private final DoubleTypeChannelHandler estimatedDistance = new DoubleTypeChannelHandler(
+        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ESTIMATED_DISTANCE) {
+        @Override Double getValue() {
+            if (getGovernor().isReady()) {
+                double distance = getGovernor().getEstimatedDistance();
+                if (distance != 0.0) {
+                    return distance;
+                }
+            }
+            return null;
         }
     };
 
@@ -125,6 +175,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         super(thing, itemRegistry, bluetoothManager, parser);
         addChannelHandlers(Arrays.asList(readyHandler, lastChangedHandler, rssiHandler, rssiFilteringHandler,
             rssiFilteringMeasurementNoiseHandler, rssiFilteringProcessNoiseHandler,
+            txPowerHandler, txPowerMeasured, signalPropagationExponentHandler, estimatedDistance,
             onlineHandler, blockedHandler, blockedControlHandler, onlineTimeoutHandler));
         thing.setLocation("Bluetooth Devices");
     }
@@ -162,6 +213,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     @Override
     public void rssiChanged(short rssi) {
         rssiHandler.updateChannel((int) rssi);
+        estimatedDistance.updateChannel(estimatedDistance.getValue());
     }
 
     @Override

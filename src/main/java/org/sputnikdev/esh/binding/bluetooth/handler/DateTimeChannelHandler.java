@@ -1,9 +1,9 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
+import org.eclipse.smarthome.core.library.types.DateTimeType;
+
 import java.util.Calendar;
 import java.util.Date;
-
-import org.eclipse.smarthome.core.library.types.DateTimeType;
 
 /**
  * @author Vlad Kolotov
@@ -28,5 +28,10 @@ class DateTimeChannelHandler extends SingleChannelHandler<Date, DateTimeType> {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(value);
         return new DateTimeType(calendar);
+    }
+
+    @Override Date load(Object stored) {
+        //TODO figure out how it is stored (what type)
+        return null;
     }
 }
