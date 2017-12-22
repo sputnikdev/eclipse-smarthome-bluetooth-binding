@@ -52,6 +52,7 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
                 .create(thingUID)
                 .withLabel(device.getAlias() != null ? device.getAlias() : device.getName())
                 .withTTL(DISCOVERY_RATE_SEC * 3)
+                .withRepresentationProperty(device.getURL().getDeviceAddress())
                 .withBridge(bridgeUID);
 
         thingDiscovered(builder.build());
@@ -62,6 +63,7 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
         thingDiscovered(DiscoveryResultBuilder
                 .create(BluetoothUtils.getAdapterUID(adapter.getURL()))
                 .withLabel(adapter.getAlias() != null ? adapter.getAlias() : adapter.getName())
+                .withRepresentationProperty(adapter.getURL().getAdapterAddress())
                 .withTTL(DISCOVERY_RATE_SEC * 3).build());
     }
 
