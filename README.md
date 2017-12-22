@@ -21,14 +21,14 @@ This binding is still work in progress. The main goal is to merge [vkolotov](htt
     - add custom made devices by only specifying a path to custom defined GATT specification for a device
 
 ## Progress
-1. ~~Merging BluetoothSmart binding into ESH project~~
-2. ~~Splitting BluetoothSmart binding into two bundles: bluetooth and transport (tinyb) bundles~~
+1. ~~Extracting the Bluetooth binding from ESH project~~
+2. ~~Splitting BluetoothSmart binding into three bundles: bluetooth bundle and two transport bundles (tinyb and bluegiga)~~
 3. ~~Making adapter things to be bridges~~
-4. Extracting tinyb library into a separate bundle (this should resolve the issue "native library already loaded in another classloader")
-5. Implementing/merging BlueGiga transport/bundle - 70% DONE.
-6. Implementing a basic binding for a specific device (POC) to discover possible options for future binding implementations. GATT specification driven and custom code/logic driven
-7. Merging YeeLightBlue binding/bundle
-8. Implementing DBus transport
+4. ~~Packing tinyb library into the tinyb transport bundle~~
+5. ~~Automatic native libraries loading (no more hassle with native lib installation)~~
+6. ~~Implementing/merging BlueGiga transport/bundle.~~
+7. ~~Presence detection (beacon mode).~~
+8. Indoor positioning (shared mode for adapters and devices). - 80% done
 9. Stabilizing
 
 ## Implementation details
