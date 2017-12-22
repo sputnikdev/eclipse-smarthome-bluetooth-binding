@@ -25,11 +25,12 @@ This binding is still work in progress. The main goal is to merge [vkolotov](htt
 2. ~~Splitting BluetoothSmart binding into three bundles: bluetooth bundle and two transport bundles (tinyb and bluegiga)~~
 3. ~~Making adapter things to be bridges~~
 4. ~~Packing tinyb library into the tinyb transport bundle~~
-5. ~~Automatic native libraries loading (no more hassle with native lib installation)~~
+5. ~~Automatic native libraries management (no more hassle with native lib installation)~~
 6. ~~Implementing/merging BlueGiga transport/bundle.~~
-7. ~~Presence detection (beacon mode).~~
-8. Indoor positioning (shared mode for adapters and devices). - 80% done
-9. Stabilizing
+8. ~~GATT support. Automatic discovery of GATT services and characteristics. Creating ESH items for discovered characteristics. Read/write/notification support~~  
+9. ~~Presence detection (beacon mode).~~
+10. Indoor positioning (shared mode for adapters and devices). - 80% done
+11. Stabilizing
 
 ## Implementation details
 
