@@ -20,12 +20,12 @@
     <author>Vlad Kolotov</author>
 
     <config-description>
-        <parameter name="expert_mode" type="boolean">
-            <label>Advanced mode</label>
-            <description>In advanced mode adapters and devices are not grouped and can be controlled separatelly</description>
-            <required>true</required>
-            <default>false</default>
-        </parameter>
+        <!--<parameter name="expert_mode" type="boolean">-->
+            <!--<label>Advanced mode</label>-->
+            <!--<description>In advanced mode adapters and devices are not grouped and can be controlled separatelly</description>-->
+            <!--<required>true</required>-->
+            <!--<default>false</default>-->
+        <!--</parameter>-->
         <parameter name="gatt_extension_folder" type="text">
             <label>GATT services and characteristics extension folder</label>
             <description><![CDATA[
