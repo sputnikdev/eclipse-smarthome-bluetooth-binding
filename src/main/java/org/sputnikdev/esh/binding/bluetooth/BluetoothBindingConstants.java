@@ -26,7 +26,7 @@ public class BluetoothBindingConstants {
 
     // List of all Channel ids
     public static final String CHANNEL_CHARACTERISTIC = "characteristic";
-    public static final String CHANNEL_FIELD = "field";
+    public static final String CHANNEL_CHARACTERISTIC_FIELD = "characteristic-field";
     public static final String CHANNEL_RSSI = "rssi";
     public static final String CHANNEL_RSSI_FILTERING = "rssi-filtering";
     public static final String CHANNEL_RSSI_FILTERING_PROCESS_NOISE = "rssi-filtering-process-noise";
