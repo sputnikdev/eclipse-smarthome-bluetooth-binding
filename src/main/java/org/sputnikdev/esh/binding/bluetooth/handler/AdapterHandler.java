@@ -60,7 +60,9 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         super(thing, itemRegistry, bluetoothManager, parser);
         addChannelHandlers(Arrays.asList(
                 readyHandler, discoveringHandler, discoveringControlHandler));
-        thing.setLocation("Bluetooth Adapters");
+        if (thing.getLocation() == null) {
+            thing.setLocation(BluetoothBindingConstants.DEFAULT_ADAPTERS_LOCATION);
+        }
     }
 
     @Override

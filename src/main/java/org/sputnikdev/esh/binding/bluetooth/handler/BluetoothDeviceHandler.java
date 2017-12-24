@@ -57,7 +57,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         super(thing, itemRegistry, bluetoothManager, gattParser);
         addChannelHandler(connectedHandler);
         addChannelHandler(connectionControlHandler);
-        this.channelBuilder = new BluetoothChannelBuilder(this);
+        channelBuilder = new BluetoothChannelBuilder(this);
     }
 
     @Override

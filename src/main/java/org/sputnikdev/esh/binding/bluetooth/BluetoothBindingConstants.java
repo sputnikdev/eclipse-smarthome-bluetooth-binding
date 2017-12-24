@@ -17,14 +17,6 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
  */
 public class BluetoothBindingConstants {
 
-    public static final String BINDING_CONFIG_EXTENSION_FOLDER = "gatt_extension_folder";
-    public static final String BINDING_CONFIG_UPDATE_RATE = "update_rate";
-    public static final String BINDING_CONFIG_INITIAL_ONLINE_TIMEOUT = "initial_online_timeout";
-    public static final String BINDING_CONFIG_INITIAL_CONNECTION_CONTROL = "initial_connection_control";
-    public static final String BINDING_CONFIG_SERIAL_PORT_REGEX = "serial_port_regex";
-    public static final String BINDING_CONFIG_EXPERT_MODE = "expert_mode";
-
-
     public static final String BINDING_ID = "bluetooth";
     
     // List of all Thing Type UIDs
@@ -76,8 +68,11 @@ public class BluetoothBindingConstants {
     public static final String WRITE_FLAG = "write";
 
     // Configuration properties
-    public static final int INITIAL_UPDATE_RATE = 10;
-    public static final int INITIAL_ONLINE_TIMEOUT = 30;
-    public static final boolean INITIAL_CONNECTION_CONTROL = true;
+    public static final int DEFAULT_UPDATE_RATE = 10;
+    public static final int DEFAULT_ONLINE_TIMEOUT = 30;
+    public static final boolean DEFAULT_CONNECTION_CONTROL = true;
+    public static final String DEFAULT_EXTENSION_FOLDER = "/home/pi/.bluetooth_smart";
+    public static final String DEFAULT_ADAPTERS_LOCATION = "Bluetooth Adapters";
+    public static final String DEFAULT_DEVICES_LOCATION = "Bluetooth Devices";
 
 }

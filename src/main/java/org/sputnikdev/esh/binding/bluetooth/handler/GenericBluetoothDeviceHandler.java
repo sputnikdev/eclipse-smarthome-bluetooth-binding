@@ -177,7 +177,9 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
             rssiFilteringMeasurementNoiseHandler, rssiFilteringProcessNoiseHandler,
             txPowerHandler, txPowerMeasured, signalPropagationExponentHandler, estimatedDistance,
             onlineHandler, blockedHandler, blockedControlHandler, onlineTimeoutHandler));
-        thing.setLocation("Bluetooth Devices");
+        if (thing.getLocation() == null) {
+            thing.setLocation(BluetoothBindingConstants.DEFAULT_DEVICES_LOCATION);
+        }
     }
 
     @Override
