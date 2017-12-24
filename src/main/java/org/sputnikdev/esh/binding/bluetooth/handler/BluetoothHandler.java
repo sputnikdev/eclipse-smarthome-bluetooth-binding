@@ -39,17 +39,13 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         this.itemRegistry = itemRegistry;
         this.bluetoothManager = bluetoothManager;
         this.gattParser = gattParser;
-        this.url = BluetoothUtils.getURL(thing);
+        url = BluetoothUtils.getURL(thing);
     }
 
     @Override
     public void initialize() {
         super.initialize();
-        synchronized (channelHandlers) {
-            for (ChannelHandler channelHandler : channelHandlers) {
-                channelHandler.init();
-            }
-        }
+        initChannelHandlers();
     }
 
     @Override
@@ -66,8 +62,8 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         logger.info("Disposing Abstract Bluetooth Handler");
         super.dispose();
         logger.info("Disposing bluetooth object: {}", url);
-        getBluetoothManager().disposeDescendantGovernors(url);
-        getBluetoothManager().disposeGovernor(url);
+        bluetoothManager.disposeDescendantGovernors(url);
+        bluetoothManager.disposeGovernor(url);
         logger.info("Abstract Bluetooth Handler has been disposed");
     }
 
@@ -140,6 +136,14 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     protected T getGovernor() {
         return (T) bluetoothManager.getGovernor(getURL());
+    }
+
+    private void initChannelHandlers() {
+        synchronized (channelHandlers) {
+            for (ChannelHandler channelHandler : channelHandlers) {
+                channelHandler.init();
+            }
+        }
     }
 
 }
