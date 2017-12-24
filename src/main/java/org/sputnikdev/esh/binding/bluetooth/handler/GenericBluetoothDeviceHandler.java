@@ -200,11 +200,13 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     @Override
     public void online() {
         onlineHandler.updateChannel(true);
+        updateStatus(ThingStatus.ONLINE);
     }
 
     @Override
     public void offline() {
         onlineHandler.updateChannel(false);
+        updateStatus(ThingStatus.OFFLINE);
     }
 
     @Override
