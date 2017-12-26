@@ -1,22 +1,20 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import org.eclipse.smarthome.core.items.ItemRegistry;
-import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.RssiKalmanFilter;
-import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
-import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GenericBluetoothDeviceListener;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
+import org.sputnikdev.esh.binding.bluetooth.internal.GenericDeviceConfig;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Optional;
 
 /**
  *
@@ -29,10 +27,10 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     private Logger logger = LoggerFactory.getLogger(GenericBluetoothDeviceHandler.class);
     private int initialOnlineTimeout;
 
-    private final SingleChannelHandler<Boolean, OnOffType> readyHandler = new BooleanTypeChannelHandler(
-            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_READY) {
+    private final BooleanTypeChannelHandler onlineHandler = new BooleanTypeChannelHandler(
+            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ONLINE) {
         @Override Boolean getValue() {
-            return getGovernor().isReady();
+            return getGovernor().isOnline();
         }
     };
 
@@ -52,70 +50,10 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     };
 
-    private final SingleChannelHandler<Boolean, OnOffType> rssiFilteringHandler = new BooleanTypeChannelHandler(
-        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING, true) {
-        @Override Boolean getValue() {
-            return getGovernor().isRssiFilteringEnabled();
-        }
-        @Override void updateThing(Boolean value) {
-            getGovernor().setRssiFilteringEnabled(value);
-        }
-    };
-
-    private final DoubleTypeChannelHandler rssiFilteringMeasurementNoiseHandler = new DoubleTypeChannelHandler(
-        GenericBluetoothDeviceHandler.this,
-        BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE, true) {
-        @Override Double getValue() {
-            return Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
-                .map(RssiKalmanFilter::getMeasurementNoise).orElse(0.0);
-        }
-        @Override void updateThing(Double value) {
-            Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
-                .ifPresent(filter -> filter.setMeasurementNoise(value));
-        }
-    };
-
-    private final DoubleTypeChannelHandler rssiFilteringProcessNoiseHandler = new DoubleTypeChannelHandler(
-        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_RSSI_FILTERING_PROCESS_NOISE,
-        true) {
-        @Override Double getValue() {
-            return Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
-                .map(RssiKalmanFilter::getProcessNoise).orElse(0.0);
-        }
-        @Override void updateThing(Double value) {
-            Optional.of(getGovernor()).map(governor -> (RssiKalmanFilter) governor.getRssiFilter())
-                .ifPresent(filter -> filter.setProcessNoise(value));
-        }
-    };
-
     private final IntegerTypeChannelHandler txPowerHandler = new IntegerTypeChannelHandler(
         GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_TX_POWER) {
         @Override Integer getValue() {
             return getGovernor().isReady() ? (int) getGovernor().getTxPower() : null;
-        }
-    };
-
-    private final IntegerTypeChannelHandler txPowerMeasured = new IntegerTypeChannelHandler(
-        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_TX_POWER_MEASURED,
-        true) {
-        @Override Integer getValue() {
-            return (int) getGovernor().getMeasuredTxPower();
-        }
-        @Override void updateThing(Integer value) {
-            getGovernor().setMeasuredTxPower(value != null ? (short) value.intValue() : 0);
-            estimatedDistance.updateChannel(estimatedDistance.getValue());
-        }
-    };
-
-    private final DoubleTypeChannelHandler signalPropagationExponentHandler = new DoubleTypeChannelHandler(
-        GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_SIGNAL_PROPAGATION_EXPONENT,
-        true) {
-        @Override Double getValue() {
-            return getGovernor().getSignalPropagationExponent();
-        }
-        @Override void updateThing(Double value) {
-            getGovernor().setSignalPropagationExponent(value);
-            estimatedDistance.updateChannel(estimatedDistance.getValue());
         }
     };
 
@@ -132,51 +70,10 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     };
 
-    private final BooleanTypeChannelHandler onlineHandler = new BooleanTypeChannelHandler(
-            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ONLINE) {
-        @Override Boolean getValue() {
-            return getGovernor().isOnline();
-        }
-    };
-
-    private final BooleanTypeChannelHandler blockedHandler = new BooleanTypeChannelHandler(
-            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_BLOCKED) {
-        @Override Boolean getValue() {
-            return getGovernor().isReady() && getGovernor().isBlocked();
-        }
-    };
-
-    private final SingleChannelHandler<Boolean, OnOffType> blockedControlHandler = new BooleanTypeChannelHandler(
-            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_BLOCKED_CONTROL, true) {
-        @Override Boolean getValue() {
-            return getGovernor().getBlockedControl();
-        }
-        @Override void updateThing(Boolean value) {
-            getGovernor().setBlockedControl(value);
-        }
-    };
-
-    private final IntegerTypeChannelHandler onlineTimeoutHandler = new IntegerTypeChannelHandler(
-            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ONLINE_TIMEOUT, true) {
-        @Override Integer getValue() {
-            return getGovernor().getOnlineTimeout();
-        }
-        @Override void updateThing(Integer value) {
-            getGovernor().setOnlineTimeout(value);
-        }
-
-        @Override Integer getDefaultValue() {
-            return initialOnlineTimeout;
-        }
-    };
-
-    public GenericBluetoothDeviceHandler(Thing thing, ItemRegistry itemRegistry,
-            BluetoothManager bluetoothManager, BluetoothGattParser parser) {
-        super(thing, itemRegistry, bluetoothManager, parser);
-        addChannelHandlers(Arrays.asList(readyHandler, lastChangedHandler, rssiHandler, rssiFilteringHandler,
-            rssiFilteringMeasurementNoiseHandler, rssiFilteringProcessNoiseHandler,
-            txPowerHandler, txPowerMeasured, signalPropagationExponentHandler, estimatedDistance,
-            onlineHandler, blockedHandler, blockedControlHandler, onlineTimeoutHandler));
+    public GenericBluetoothDeviceHandler(BluetoothHandlerFactory factory, Thing thing) {
+        super(factory, thing);
+        addChannelHandlers(Arrays.asList(onlineHandler, lastChangedHandler, rssiHandler, txPowerHandler,
+                estimatedDistance));
         if (thing.getLocation() == null) {
             thing.setLocation(BluetoothBindingConstants.DEFAULT_DEVICES_LOCATION);
         }
@@ -185,9 +82,57 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     @Override
     public void initialize() {
         super.initialize();
-        getGovernor().addGenericBluetoothDeviceListener(this);
-        getGovernor().addGovernorListener(this);
+        DeviceGovernor deviceGovernor = getGovernor();
+        deviceGovernor.addGenericBluetoothDeviceListener(this);
+        deviceGovernor.addGovernorListener(this);
+        deviceGovernor.setBlockedControl(false);
+
+        Configuration conf = editConfiguration();
+        if (conf.get("onlineTimeout") == null) {
+            conf.put("onlineTimeout", initialOnlineTimeout);
+            updateConfiguration(conf);
+        }
+
+        updateDevice(getConfig());
+
+        if (deviceGovernor.isReady()) {
+            deviceGovernor.setAlias(thing.getLabel());
+        }
         updateStatus(ThingStatus.ONLINE);
+    }
+
+    @Override
+    protected void updateDevice(Configuration configuration) {
+        GenericDeviceConfig config = configuration.as(GenericDeviceConfig.class);
+
+        DeviceGovernor deviceGovernor = getGovernor();
+        deviceGovernor.setOnlineTimeout(config.getOnlineTimeout() != null
+                ? config.getOnlineTimeout() : initialOnlineTimeout);
+
+        if (config.getRssiFilterType() == null) {
+            deviceGovernor.setRssiFilteringEnabled(false);
+        } else {
+            GenericDeviceConfig.RssiFilterType rssiFilterType =
+                    GenericDeviceConfig.RssiFilterType.valueOf(config.getRssiFilterType());
+            if (rssiFilterType == GenericDeviceConfig.RssiFilterType.NONE) {
+                deviceGovernor.setRssiFilteringEnabled(false);
+            } else {
+                if (deviceGovernor.getRssiFilter() instanceof RssiKalmanFilter) {
+                    deviceGovernor.setRssiFilteringEnabled(true);
+                    RssiKalmanFilter filter = (RssiKalmanFilter) deviceGovernor.getRssiFilter();
+                    filter.setProcessNoise(rssiFilterType.getProcessNoise());
+                    filter.setMeasurementNoise(rssiFilterType.getMeasurmentNoise());
+                }
+            }
+        }
+
+        if (config.getTxPowerMeasured() != null) {
+            deviceGovernor.setMeasuredTxPower((short) (int) config.getTxPowerMeasured());
+        }
+
+        if (deviceGovernor.isReady()) {
+            deviceGovernor.setAlias(getThing().getLabel());
+        }
     }
 
     @Override
@@ -210,9 +155,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     }
 
     @Override
-    public void blocked(boolean blocked) {
-        blockedHandler.updateChannel(blocked);
-    }
+    public void blocked(boolean blocked) { /* do nothing */ }
 
     @Override
     public void rssiChanged(short rssi) {
@@ -222,7 +165,9 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     @Override
     public void ready(boolean ready) {
-        readyHandler.updateChannel(ready);
+        if (!ready) {
+            updateStatus(ThingStatus.OFFLINE);
+        }
     }
 
     @Override
@@ -237,4 +182,5 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     public void setInitialOnlineTimeout(int initialOnlineTimeout) {
         this.initialOnlineTimeout = initialOnlineTimeout;
     }
+
 }

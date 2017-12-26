@@ -15,10 +15,12 @@ import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothGovernor;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Vlad Kolotov
@@ -27,18 +29,13 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(BluetoothHandler.class);
 
-    private final ItemRegistry itemRegistry;
-    private final BluetoothManager bluetoothManager;
-    private final BluetoothGattParser gattParser;
+    private final BluetoothHandlerFactory factory;
     private final URL url;
     private final List<ChannelHandler> channelHandlers = new ArrayList<>();
 
-    BluetoothHandler(Thing thing, ItemRegistry itemRegistry,
-                            BluetoothManager bluetoothManager, BluetoothGattParser gattParser) {
+    BluetoothHandler(BluetoothHandlerFactory factory, Thing thing) {
         super(thing);
-        this.itemRegistry = itemRegistry;
-        this.bluetoothManager = bluetoothManager;
-        this.gattParser = gattParser;
+        this.factory = factory;
         url = BluetoothUtils.getURL(thing);
     }
 
@@ -62,9 +59,23 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         logger.info("Disposing Abstract Bluetooth Handler");
         super.dispose();
         logger.info("Disposing bluetooth object: {}", url);
-        bluetoothManager.disposeDescendantGovernors(url);
-        bluetoothManager.disposeGovernor(url);
+        getBluetoothManager().disposeDescendantGovernors(url);
+        getBluetoothManager().disposeGovernor(url);
         logger.info("Abstract Bluetooth Handler has been disposed");
+    }
+
+    @Override
+    public void handleConfigurationUpdate(Map<String, Object> configurationParameters) {
+        validateConfigurationParameters(configurationParameters);
+
+        // can be overridden by subclasses
+        Configuration configuration = editConfiguration();
+        for (Map.Entry<String, Object> configurationParmeter : configurationParameters.entrySet()) {
+            configuration.put(configurationParmeter.getKey(), configurationParmeter.getValue());
+        }
+
+        updateConfiguration(configuration);
+        updateDevice(configuration);
     }
 
     @Override
@@ -77,10 +88,6 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         super.updateState(channelUID, state);
     }
 
-    @Override
-    protected void updateStatus(ThingStatus status) {
-        super.updateStatus(status);
-    }
 
     @Override
     protected Configuration getConfig() {
@@ -102,16 +109,20 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         super.updateStatus(status, statusDetail, description);
     }
 
+    protected void updateDevice(Configuration configuration) {
+        // default implementation
+    }
+
     protected BluetoothManager getBluetoothManager() {
-        return bluetoothManager;
+        return factory.getBluetoothManager();
     }
 
     protected BluetoothGattParser getGattParser() {
-        return gattParser;
+        return factory.getGattParser();
     }
 
     protected ItemRegistry getItemRegistry() {
-        return itemRegistry;
+        return factory.getItemRegistry();
     }
 
     List<ChannelHandler> getChannelHandlers() {
@@ -135,7 +146,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     }
 
     protected T getGovernor() {
-        return (T) bluetoothManager.getGovernor(getURL());
+        return (T) getBluetoothManager().getGovernor(getURL());
     }
 
     private void initChannelHandlers() {

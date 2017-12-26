@@ -1,7 +1,7 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
 
-import org.eclipse.smarthome.core.items.ItemRegistry;
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.DateTimeType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -10,12 +10,12 @@ import org.eclipse.smarthome.core.thing.binding.BridgeHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.AdapterGovernor;
 import org.sputnikdev.bluetooth.manager.AdapterListener;
-import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.internal.AdapterConfig;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -31,35 +31,30 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
     private Logger logger = LoggerFactory.getLogger(AdapterHandler.class);
 
-    private final SingleChannelHandler<Boolean, OnOffType> readyHandler = new BooleanTypeChannelHandler(
-            AdapterHandler.this, BluetoothBindingConstants.CHANNEL_READY) {
-        @Override Boolean getValue() {
-            return getGovernor().isReady();
-        }
-    };
-
     private final SingleChannelHandler<Boolean, OnOffType> discoveringHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_DISCOVERING) {
-        @Override Boolean getValue() {
+        @Override
+        Boolean getValue() {
             return getGovernor().isReady() && getGovernor().isDiscovering();
         }
     };
 
     private final SingleChannelHandler<Boolean, OnOffType> discoveringControlHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_DISCOVERING_CONTROL, true) {
-        @Override Boolean getValue() {
+        @Override
+        Boolean getValue() {
             return getGovernor().getDiscoveringControl();
         }
-        @Override void updateThing(Boolean value) {
+
+        @Override
+        void updateThing(Boolean value) {
             getGovernor().setDiscoveringControl(value);
         }
     };
 
-    public AdapterHandler(Thing thing, ItemRegistry itemRegistry,
-            BluetoothManager bluetoothManager, BluetoothGattParser parser) {
-        super(thing, itemRegistry, bluetoothManager, parser);
-        addChannelHandlers(Arrays.asList(
-                readyHandler, discoveringHandler, discoveringControlHandler));
+    public AdapterHandler(BluetoothHandlerFactory factory, Thing thing) {
+        super(factory, thing);
+        addChannelHandlers(Arrays.asList(discoveringHandler, discoveringControlHandler));
         if (thing.getLocation() == null) {
             thing.setLocation(BluetoothBindingConstants.DEFAULT_ADAPTERS_LOCATION);
         }
@@ -71,12 +66,13 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         AdapterGovernor adapterGovernor = getGovernor();
         adapterGovernor.addGovernorListener(this);
         adapterGovernor.addAdapterListener(this);
+
+        lastUpdatedChanged(new Date());
+        updateDevice(getConfig());
+
         if (adapterGovernor.isReady()) {
             adapterGovernor.setAlias(thing.getLabel());
         }
-
-        lastUpdatedChanged(new Date());
-
         updateStatus(adapterGovernor.isReady() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
     }
 
@@ -97,7 +93,6 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
     @Override
     public void ready(boolean ready) {
-        readyHandler.updateChannel(ready);
         updateStatus(ready ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
     }
 
@@ -109,8 +104,24 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
     }
 
     @Override
-    public void childHandlerInitialized(ThingHandler childHandler, Thing childThing) { }
+    public void childHandlerInitialized(ThingHandler childHandler, Thing childThing) {
+    }
 
     @Override
-    public void childHandlerDisposed(ThingHandler childHandler, Thing childThing) { }
+    public void childHandlerDisposed(ThingHandler childHandler, Thing childThing) {
+    }
+
+    @Override
+    protected void updateDevice(Configuration configuration) {
+        AdapterConfig config = configuration.as(AdapterConfig.class);
+
+        AdapterGovernor adapterGovernor = getGovernor();
+
+        if (config.getSignalPropagationExponent() != null) {
+            adapterGovernor.setSignalPropagationExponent(config.getSignalPropagationExponent());
+        }
+        if (adapterGovernor.isReady()) {
+            adapterGovernor.setAlias(getThing().getLabel());
+        }
+    }
 }

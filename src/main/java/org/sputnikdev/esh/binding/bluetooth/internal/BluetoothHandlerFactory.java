@@ -64,6 +64,22 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
     }
 
+    public BluetoothManager getBluetoothManager() {
+        return bluetoothManager;
+    }
+
+    public BluetoothGattParser getGattParser() {
+        return gattParser;
+    }
+
+    public BluetoothBindingConfig getBindingConfig() {
+        return config;
+    }
+
+    public ItemRegistry getItemRegistry() {
+        return itemRegistry;
+    }
+
     @Override
     protected void activate(ComponentContext componentContext) {
         super.activate(componentContext);
@@ -103,15 +119,15 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_ADAPTER)) {
-            return new AdapterHandler(thing, itemRegistry, bluetoothManager, gattParser);
+            return new AdapterHandler(this, thing);
         } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)) {
             GenericBluetoothDeviceHandler genericBluetoothDeviceHandler =
-                    new GenericBluetoothDeviceHandler(thing, itemRegistry, bluetoothManager, gattParser);
+                    new GenericBluetoothDeviceHandler(this, thing);
             genericBluetoothDeviceHandler.setInitialOnlineTimeout(config.getInitialOnlineTimeout());
             return genericBluetoothDeviceHandler;
         } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)) {
             BluetoothDeviceHandler bluetoothDeviceHandler =
-                    new BluetoothDeviceHandler(thing, itemRegistry, bluetoothManager, gattParser);
+                    new BluetoothDeviceHandler(this, thing);
             bluetoothDeviceHandler.setInitialOnlineTimeout(config.getInitialOnlineTimeout());
             bluetoothDeviceHandler.setInitialConnectionControl(config.isInitialConnectionControl());
             return bluetoothDeviceHandler;

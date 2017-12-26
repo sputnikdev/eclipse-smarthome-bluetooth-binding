@@ -1,6 +1,5 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -8,11 +7,10 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
-import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.bluetooth.manager.BluetoothSmartDeviceListener;
 import org.sputnikdev.bluetooth.manager.GattService;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -52,9 +50,8 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     private final BluetoothChannelBuilder channelBuilder;
 
 
-    public BluetoothDeviceHandler(Thing thing, ItemRegistry itemRegistry,
-                                  BluetoothManager bluetoothManager, BluetoothGattParser gattParser) {
-        super(thing, itemRegistry, bluetoothManager, gattParser);
+    public BluetoothDeviceHandler(BluetoothHandlerFactory factory, Thing thing) {
+        super(factory, thing);
         addChannelHandler(connectedHandler);
         addChannelHandler(connectionControlHandler);
         channelBuilder = new BluetoothChannelBuilder(this);

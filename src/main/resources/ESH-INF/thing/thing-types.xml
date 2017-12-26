@@ -8,50 +8,29 @@
         <label>Generic Bluetooth device</label>
         <description>Generic Bluetooth device</description>
         <channels>
-            <channel id="ready" typeId="ready"/>
             <channel id="online" typeId="online"/>
-            <channel id="online-timeout" typeId="online-timeout"/>
             <channel id="rssi" typeId="rssi"/>
-            <channel id="rssi-filtering" typeId="rssi-filtering"/>
-            <channel id="rssi-filtering-process-noise" typeId="rssi-filtering-process-noise"/>
-            <channel id="rssi-filtering-measurement-noise" typeId="rssi-filtering-measurement-noise"/>
             <channel id="tx-power" typeId="tx-power"/>
-            <channel id="tx-power-measured" typeId="tx-power-measured"/>
-            <channel id="signal-propagation-exponent" typeId="signal-propagation-exponent"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
+        <config-description-ref uri="thing-type:bluetooth:generic"/>
     </thing-type>
 
     <thing-type id="ble">
         <label>BLE enabled Bluetooth device</label>
         <description>BLE enabled Bluetooth device</description>
-
         <channels>
-            <channel id="ready" typeId="ready"/>
             <channel id="online" typeId="online"/>
-            <channel id="online-timeout" typeId="online-timeout"/>
             <channel id="connected" typeId="connected"/>
             <channel id="connection-control" typeId="connection-control"/>
             <channel id="rssi" typeId="rssi"/>
-            <channel id="rssi-filtering" typeId="rssi-filtering"/>
-            <channel id="rssi-filtering-process-noise" typeId="rssi-filtering-process-noise"/>
-            <channel id="rssi-filtering-measurement-noise" typeId="rssi-filtering-measurement-noise"/>
             <channel id="tx-power" typeId="tx-power"/>
-            <channel id="tx-power-measured" typeId="tx-power-measured"/>
-            <channel id="signal-propagation-exponent" typeId="signal-propagation-exponent"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
-
+        <config-description-ref uri="thing-type:bluetooth:generic"/>
     </thing-type>
-
-    <channel-type id="ready">
-        <item-type>Switch</item-type>
-        <label>Ready</label>
-        <description>Indicates whether bluetooth adapter/device is ready for interaction</description>
-        <state readOnly="true"/>
-    </channel-type>
 
     <channel-type id="connected">
         <item-type>Switch</item-type>
@@ -80,61 +59,21 @@
         <state readOnly="true"/>
     </channel-type>
 
-    <channel-type id="rssi-filtering">
-        <item-type>Switch</item-type>
-        <label>RSSI filtering</label>
-        <description>Controls whether RSSI is filtered (smoothed)</description>
-    </channel-type>
-
-    <channel-type id="rssi-filtering-process-noise">
-        <item-type>Number</item-type>
-        <label>RSSI filter process noise</label>
-        <description>RSSI Kalman filter process noise</description>
-    </channel-type>
-
-    <channel-type id="rssi-filtering-measurement-noise">
-        <item-type>Number</item-type>
-        <label>RSSI filter measurement noise</label>
-        <description>RSSI Kalman filter measurement noise</description>
-    </channel-type>
-
-    <channel-type id="tx-power">
+    <channel-type id="tx-power" advanced="true">
         <item-type>Number</item-type>
         <label>Tx Power</label>
         <description>Actual (manufacturer defined) TX power of the device. Note: some bluetooth devices do not adverise its TX power</description>
         <state readOnly="true"/>
     </channel-type>
 
-    <channel-type id="tx-power-measured">
-        <item-type>Number</item-type>
-        <label>Measured Tx Power</label>
-        <description>Measured/estimated (user defined) TX power of the device that is measured 1 meter away from the adapter</description>
-        <state max="0" min="-120"/>
-    </channel-type>
-
     <channel-type id="estimated-distance">
         <item-type>Number</item-type>
         <label>Estimated distance</label>
-        <description>Estimated (user defined) distance between this device and the adapter. Either measured or actual
-            TX power must be available for the estimation, otherwise the resulting value equals 0.
+        <description>Estimated distance between this device and the adapter. Either measured or actual
+            TX power must be available for the estimation, otherwise the resulting value equals to 0.
             The calculation is based on the logarithmetic function: d = 10 ^ ((TxPower - RSSI) / 10n);
-            where n ranges from 2 to 4 (environemnt specific factor, e.g. 2 open plan -> 4 indoor)</description>
+            where n is the "Signal propagation exponent" that is specifed in the adapter configuration.</description>
         <state readOnly="true" pattern="%.2fm"/>
-    </channel-type>
-
-    <channel-type id="signal-propagation-exponent">
-        <item-type>Number</item-type>
-        <label>Signal propagation exponent</label>
-        <description>Estimated (used defined) signal propagation exponent. It is used in distance calculation.
-            This factor is specific to the environment, i.e. how efficient the signal passes through obsticles.
-            Normally it ranges from 2.0 (outdoors, no obsticles) to 4.0 (indoors, walls and furniture).</description>
-        <state>
-            <options>
-                <option value="2">Outdoors, no obsticles</option>
-                <option value="3">Indoors, moderate obsticles</option>
-                <option value="4">Indoors, walls and furniture</option>
-            </options>
-        </state>
     </channel-type>
 
     <channel-type id="last-updated">
@@ -142,32 +81,6 @@
         <label>Last updated</label>
         <description>Date and time of the last activity</description>
         <state readOnly="true"/>
-    </channel-type>
-
-    <channel-type id="powered">
-        <item-type>Switch</item-type>
-        <label>Powered</label>
-        <description>Indicates whether bluetooth adapter is powered</description>
-        <state readOnly="true"/>
-    </channel-type>
-
-    <channel-type id="powered-control">
-        <item-type>Switch</item-type>
-        <label>Powered control</label>
-        <description>Controls whether bluetooth adapter is powered</description>
-    </channel-type>
-
-    <channel-type id="discovering">
-        <item-type>Switch</item-type>
-        <label>Discovering</label>
-        <description>Indicates whether bluetooth adapter is in discovering state</description>
-        <state readOnly="true"/>
-    </channel-type>
-
-    <channel-type id="discovering-control">
-        <item-type>Switch</item-type>
-        <label>Discovering control</label>
-        <description>Controls whether bluetooth adapter is in discovering state</description>
     </channel-type>
 
     <channel-type id="online-timeout">
