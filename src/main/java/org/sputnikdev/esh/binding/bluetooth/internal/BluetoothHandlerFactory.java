@@ -6,6 +6,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.thing.Thing;
+import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
@@ -57,6 +58,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     private ServiceRegistration<BluetoothGattParser> bluetoothGattParserServiceRegistration;
     private BluetoothGattParser gattParser;
     private ItemRegistry itemRegistry;
+    private ThingRegistry thingRegistry;
     private BluetoothBindingConfig config;
 
     @Override
@@ -78,6 +80,10 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
     public ItemRegistry getItemRegistry() {
         return itemRegistry;
+    }
+
+    public ThingRegistry getThingRegistry() {
+        return thingRegistry;
     }
 
     @Override
@@ -136,13 +142,22 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         return null;
     }
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public void setItemRegistry(ItemRegistry itemRegistry) {
         this.itemRegistry = itemRegistry;
     }
 
     public void unsetItemRegistry(ItemRegistry itemRegistry) {
         this.itemRegistry = null;
+    }
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    public void setThingRegistry(ThingRegistry thingRegistry) {
+        this.thingRegistry = thingRegistry;
+    }
+
+    public void unsetThingRegistry(ItemRegistry thingRegistry) {
+        this.thingRegistry = null;
     }
 
     @Reference(unbind = "unregisterBluetoothObjectFactory", cardinality = ReferenceCardinality.MULTIPLE,

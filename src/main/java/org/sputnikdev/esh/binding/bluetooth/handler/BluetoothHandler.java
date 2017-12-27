@@ -4,6 +4,7 @@ import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
+import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
@@ -123,6 +124,10 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     protected ItemRegistry getItemRegistry() {
         return factory.getItemRegistry();
+    }
+
+    protected ThingRegistry getThingRegistry() {
+        return factory.getThingRegistry();
     }
 
     List<ChannelHandler> getChannelHandlers() {

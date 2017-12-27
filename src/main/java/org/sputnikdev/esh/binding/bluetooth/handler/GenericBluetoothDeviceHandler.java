@@ -6,11 +6,13 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.RssiKalmanFilter;
+import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GenericBluetoothDeviceListener;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import org.sputnikdev.esh.binding.bluetooth.internal.GenericDeviceConfig;
 
 import java.util.Arrays;
@@ -70,10 +72,33 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     };
 
+    private final StringTypeChannelHandler nearestAdapterHandler = new StringTypeChannelHandler(
+            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_NEAREST_ADAPTER) {
+        @Override String getValue() {
+            URL location = getGovernor().getLocation();
+            return location != null ? location.getAdapterAddress() : null;
+        }
+    };
+
+    private final StringTypeChannelHandler locationHandler = new StringTypeChannelHandler(
+            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_LOCATION) {
+        @Override String getValue() {
+            URL locationURL = getGovernor().getLocation();
+            String location = "Unknown";
+            if (locationURL != null) {
+                Thing adapterThing = getThingRegistry().get(BluetoothUtils.getAdapterUID(locationURL));
+                if (adapterThing != null) {
+                    location =  adapterThing.getLocation();
+                }
+            }
+            return location;
+        }
+    };
+
     public GenericBluetoothDeviceHandler(BluetoothHandlerFactory factory, Thing thing) {
         super(factory, thing);
         addChannelHandlers(Arrays.asList(onlineHandler, lastChangedHandler, rssiHandler, txPowerHandler,
-                estimatedDistance));
+                estimatedDistance, nearestAdapterHandler, locationHandler));
         if (thing.getLocation() == null) {
             thing.setLocation(BluetoothBindingConstants.DEFAULT_DEVICES_LOCATION);
         }
@@ -161,6 +186,8 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     public void rssiChanged(short rssi) {
         rssiHandler.updateChannel((int) rssi);
         estimatedDistance.updateChannel(estimatedDistance.getValue());
+        locationHandler.updateChannel(locationHandler.getValue());
+        nearestAdapterHandler.updateChannel(nearestAdapterHandler.getValue());
     }
 
     @Override

@@ -28,25 +28,16 @@ public class BluetoothBindingConstants {
     public static final String CHANNEL_CHARACTERISTIC = "characteristic";
     public static final String CHANNEL_CHARACTERISTIC_FIELD = "characteristic-field";
     public static final String CHANNEL_RSSI = "rssi";
-    public static final String CHANNEL_RSSI_FILTERING = "rssi-filtering";
-    public static final String CHANNEL_RSSI_FILTERING_PROCESS_NOISE = "rssi-filtering-process-noise";
-    public static final String CHANNEL_RSSI_FILTERING_MEASUREMENT_NOISE = "rssi-filtering-measurement-noise";
     public static final String CHANNEL_TX_POWER = "tx-power";
-    public static final String CHANNEL_TX_POWER_MEASURED = "tx-power-measured";
-    public static final String CHANNEL_SIGNAL_PROPAGATION_EXPONENT = "signal-propagation-exponent";
     public static final String CHANNEL_ESTIMATED_DISTANCE = "estimated-distance";
     public static final String CHANNEL_LAST_UPDATED = "last-updated";
     public static final String CHANNEL_CONNECTED = "connected";
     public static final String CHANNEL_CONNECTION_CONTROL = "connection-control";
-    public static final String CHANNEL_BLOCKED = "blocked";
-    public static final String CHANNEL_BLOCKED_CONTROL = "blocked-control";
     public static final String CHANNEL_ONLINE = "online";
-    public static final String CHANNEL_POWERED = "powered";
-    public static final String CHANNEL_POWERED_CONTROL = "powered-control";
     public static final String CHANNEL_DISCOVERING = "discovering";
     public static final String CHANNEL_DISCOVERING_CONTROL = "discovering-control";
-    public static final String CHANNEL_READY = "ready";
-    public static final String CHANNEL_ONLINE_TIMEOUT = "online-timeout";
+    public static final String CHANNEL_LOCATION = "location";
+    public static final String CHANNEL_NEAREST_ADAPTER = "nearest-adapter";
 
     // Thing (device) properties
     public static final String PROPERTY_ADDRESS = "Address";

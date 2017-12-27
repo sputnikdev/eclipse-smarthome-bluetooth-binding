@@ -12,6 +12,8 @@
             <channel id="rssi" typeId="rssi"/>
             <channel id="tx-power" typeId="tx-power"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
+            <channel id="nearest-adapter" typeId="nearest-adapter"/>
+            <channel id="location" typeId="location"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
         <config-description-ref uri="thing-type:bluetooth:generic"/>
@@ -27,6 +29,8 @@
             <channel id="rssi" typeId="rssi"/>
             <channel id="tx-power" typeId="tx-power"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
+            <channel id="nearest-adapter" typeId="nearest-adapter"/>
+            <channel id="location" typeId="location"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
         <config-description-ref uri="thing-type:bluetooth:generic"/>
@@ -88,6 +92,20 @@
         <label>Online timeout</label>
         <description>Bluetooth devices not showing any activity are considered to be offline after exceeding this timeout (seconds)</description>
         <state min="0" pattern="%ss"/>
+    </channel-type>
+
+    <channel-type id="nearest-adapter">
+        <item-type>String</item-type>
+        <label>Nearest adapter</label>
+        <description>Newarest adapter address</description>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="location">
+        <item-type>String</item-type>
+        <label>Location</label>
+        <description>Location of the device</description>
+        <state readOnly="true"/>
     </channel-type>
 
 </thing:thing-descriptions>
