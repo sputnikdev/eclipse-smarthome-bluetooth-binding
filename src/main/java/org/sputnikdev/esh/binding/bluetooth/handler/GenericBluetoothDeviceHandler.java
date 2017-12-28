@@ -162,8 +162,10 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     @Override
     public void dispose() {
-        getGovernor().removeGenericBluetoothDeviceListener(this);
-        getGovernor().removeGovernorListener(this);
+        DeviceGovernor deviceGovernor = getGovernor();
+        deviceGovernor.removeGenericBluetoothDeviceListener(this);
+        deviceGovernor.removeGovernorListener(this);
+        deviceGovernor.setConnectionControl(false);
         super.dispose();
     }
 

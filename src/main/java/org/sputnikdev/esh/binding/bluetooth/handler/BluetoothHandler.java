@@ -49,9 +49,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         synchronized (channelHandlers) {
-            for (ChannelHandler channelHandler : channelHandlers) {
-                channelHandler.handleCommand(channelUID, command);
-            }
+            channelHandlers.forEach(channel -> channel.handleCommand(channelUID, command));
         }
     }
 
@@ -59,9 +57,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     public void dispose() {
         logger.info("Disposing Abstract Bluetooth Handler");
         super.dispose();
-        logger.info("Disposing bluetooth object: {}", url);
-        getBluetoothManager().disposeDescendantGovernors(url);
-        getBluetoothManager().disposeGovernor(url);
+        disposeChannelHandlers();
         logger.info("Abstract Bluetooth Handler has been disposed");
     }
 
@@ -156,9 +152,13 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     private void initChannelHandlers() {
         synchronized (channelHandlers) {
-            for (ChannelHandler channelHandler : channelHandlers) {
-                channelHandler.init();
-            }
+            channelHandlers.forEach(ChannelHandler::init);
+        }
+    }
+
+    private void disposeChannelHandlers() {
+        synchronized (channelHandlers) {
+            channelHandlers.forEach(ChannelHandler::dispose);
         }
     }
 

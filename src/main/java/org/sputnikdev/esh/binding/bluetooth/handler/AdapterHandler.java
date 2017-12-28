@@ -78,8 +78,10 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
     @Override
     public void dispose() {
-        getGovernor().removeAdapterListener(this);
-        getGovernor().removeGovernorListener(this);
+        AdapterGovernor adapterGovernor = getGovernor();
+        adapterGovernor.removeAdapterListener(this);
+        adapterGovernor.removeGovernorListener(this);
+        adapterGovernor.setDiscoveringControl(false);
         super.dispose();
     }
 

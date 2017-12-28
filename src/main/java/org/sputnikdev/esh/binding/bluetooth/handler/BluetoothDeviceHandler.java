@@ -8,6 +8,7 @@ import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.manager.BluetoothSmartDeviceListener;
+import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GattService;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
@@ -67,7 +68,9 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     @Override
     public void dispose() {
-        getGovernor().removeBluetoothSmartDeviceListener(this);
+        DeviceGovernor deviceGovernor = getGovernor();
+        deviceGovernor.removeBluetoothSmartDeviceListener(this);
+        deviceGovernor.setConnectionControl(false);
         super.dispose();
     }
 

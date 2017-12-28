@@ -55,7 +55,9 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
         updateChannels();
     }
 
-    public void dispose() { }
+    public void dispose() {
+        getGovernor().removeValueListener(this);
+    }
 
     @Override
     public URL getURL() {
