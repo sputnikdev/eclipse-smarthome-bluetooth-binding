@@ -98,7 +98,8 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         });
         bluetoothManager = BluetoothManagerFactory.getManager();
         bluetoothManager.setRefreshRate(config.getUpdateRate());
-        bluetoothManager.setSharedMode(!config.isAdvancedMode());
+        bluetoothManager.enableCombinedAdapters(config.isCombinedAdaptersEnabled());
+        bluetoothManager.enableCombinedDevices(config.isCombinedDevicesEnabled());
         gattParser = BluetoothGattParserFactory.getDefault();
         File extensionFolderFile = new File(config.getExtensionFolder());
         if (extensionFolderFile.exists() && extensionFolderFile.isDirectory()) {

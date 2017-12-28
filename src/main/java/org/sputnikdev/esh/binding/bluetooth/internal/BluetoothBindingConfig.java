@@ -9,7 +9,8 @@ public class BluetoothBindingConfig {
     private int initialOnlineTimeout = BluetoothBindingConstants.DEFAULT_ONLINE_TIMEOUT;
     private boolean initialConnectionControl = BluetoothBindingConstants.DEFAULT_CONNECTION_CONTROL;
     private String serialPortRegex;
-    private boolean advancedMode;
+    private boolean combinedAdaptersEnabled;
+    private boolean combinedDevicesEnabled;
 
     public String getExtensionFolder() {
         return extensionFolder;
@@ -51,11 +52,19 @@ public class BluetoothBindingConfig {
         this.serialPortRegex = serialPortRegex;
     }
 
-    public boolean isAdvancedMode() {
-        return advancedMode;
+    public boolean isCombinedAdaptersEnabled() {
+        return combinedAdaptersEnabled;
     }
 
-    public void setAdvancedMode(boolean advancedMode) {
-        this.advancedMode = advancedMode;
+    public void setCombinedAdaptersEnabled(boolean combinedAdaptersEnabled) {
+        this.combinedAdaptersEnabled = combinedAdaptersEnabled;
+    }
+
+    public boolean isCombinedDevicesEnabled() {
+        return combinedDevicesEnabled;
+    }
+
+    public void setCombinedDevicesEnabled(boolean combinedDevicesEnabled) {
+        this.combinedDevicesEnabled = combinedDevicesEnabled;
     }
 }

@@ -20,11 +20,17 @@
     <author>Vlad Kolotov</author>
 
     <config-description>
-        <parameter name="advancedMode" type="boolean">
-            <label>Advanced mode</label>
-            <description>In advanced mode adapters and devices are not grouped and can be controlled separatelly</description>
+        <parameter name="combinedAdaptersEnabled" type="boolean">
+            <label>Combine adapters</label>
+            <description>If selected all discovered adapters are combined into a single thing and therefore can be controlled as a single unit.</description>
             <required>true</required>
             <default>false</default>
+        </parameter>
+        <parameter name="combinedDevicesEnabled" type="boolean">
+            <label>Combine devices</label>
+            <description>If selected all discovered devices that have the same adress (discovered through different adapters) are combined into a single thing and therefore can be controlled as a single unit.</description>
+            <required>true</required>
+            <default>true</default>
         </parameter>
         <parameter name="extensionFolder" type="text">
             <label>GATT services and characteristics extension folder</label>
