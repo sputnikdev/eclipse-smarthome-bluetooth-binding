@@ -1,13 +1,11 @@
-/**
- * Copyright (c) 2014-2016 by the respective copyright holders.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package org.sputnikdev.esh.binding.bluetooth;
 
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The {@link BluetoothBindingConstants} class defines common constants, which are
@@ -15,7 +13,9 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
  * 
  * @author Vlad Kolotov - Initial contribution
  */
-public class BluetoothBindingConstants {
+public final class BluetoothBindingConstants {
+
+    private BluetoothBindingConstants() { }
 
     public static final String BINDING_ID = "bluetooth";
     
@@ -23,6 +23,12 @@ public class BluetoothBindingConstants {
     public static final ThingTypeUID THING_TYPE_ADAPTER = new ThingTypeUID(BINDING_ID, "adapter");
     public static final ThingTypeUID THING_TYPE_GENERIC = new ThingTypeUID(BINDING_ID, "generic");
     public static final ThingTypeUID THING_TYPE_BLE = new ThingTypeUID(BINDING_ID, "ble");
+    public static final ThingTypeUID THING_TYPE_GENERIC_DEDICATED = new ThingTypeUID(BINDING_ID, "generic-dedicated");
+    public static final ThingTypeUID THING_TYPE_BLE_DEDICATED = new ThingTypeUID(BINDING_ID, "ble-dedicated");
+
+    public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.unmodifiableSet(Stream.of(
+            THING_TYPE_ADAPTER, THING_TYPE_GENERIC, THING_TYPE_BLE, THING_TYPE_GENERIC_DEDICATED,
+            THING_TYPE_BLE_DEDICATED).collect(Collectors.toSet()));
 
     // List of all Channel ids
     public static final String CHANNEL_CHARACTERISTIC = "characteristic";
@@ -37,7 +43,7 @@ public class BluetoothBindingConstants {
     public static final String CHANNEL_DISCOVERING = "discovering";
     public static final String CHANNEL_DISCOVERING_CONTROL = "discovering-control";
     public static final String CHANNEL_LOCATION = "location";
-    public static final String CHANNEL_NEAREST_ADAPTER = "nearest-adapter";
+    public static final String CHANNEL_ADAPTER = "adapter";
 
     // Thing (device) properties
     public static final String PROPERTY_ADDRESS = "Address";

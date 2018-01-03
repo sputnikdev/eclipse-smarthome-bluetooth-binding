@@ -1,13 +1,16 @@
 package org.sputnikdev.esh.binding.bluetooth.internal;
 
-import java.util.Optional;
-import java.util.Set;
-
-import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.eclipse.smarthome.core.thing.Thing;
+import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.sputnikdev.bluetooth.URL;
+import org.sputnikdev.bluetooth.manager.CombinedGovernor;
+import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
+import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Vlad Kolotov
@@ -19,18 +22,26 @@ public class BluetoothUtils {
     private BluetoothUtils() {}
 
     public static ThingUID getAdapterUID(URL url) {
-        return new ThingUID(BluetoothBindingConstants.THING_TYPE_ADAPTER,
-                BluetoothUtils.getUID(url.getAdapterAddress()));
+        return new ThingUID(BluetoothBindingConstants.THING_TYPE_ADAPTER, getUID(url.getAdapterAddress()));
     }
 
-    public static ThingUID getGenericDeviceUID(URL url) {
-        return new ThingUID(BluetoothBindingConstants.THING_TYPE_GENERIC, getAdapterUID(url),
-                BluetoothUtils.getUID(url.getDeviceAddress()));
+    public static ThingUID getDeviceUID(DiscoveredDevice device) {
+        return getDeviceUID(device.getURL(), device.isBleEnabled());
     }
 
-    public static ThingUID getBleDeviceUID(URL url) {
-        return new ThingUID(BluetoothBindingConstants.THING_TYPE_BLE, getAdapterUID(url),
-                BluetoothUtils.getUID(url.getDeviceAddress()));
+    public static ThingUID getDeviceUID(URL url, boolean bleEnabled) {
+        ThingTypeUID thingTypeUID;
+        if (isCombined(url)) {
+            thingTypeUID = bleEnabled
+                    ? BluetoothBindingConstants.THING_TYPE_BLE :
+                    BluetoothBindingConstants.THING_TYPE_GENERIC;
+            return new ThingUID(thingTypeUID, getUID(url.getDeviceAddress()));
+        } else {
+            thingTypeUID = bleEnabled
+                    ? BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED :
+                    BluetoothBindingConstants.THING_TYPE_GENERIC_DEDICATED;
+            return new ThingUID(thingTypeUID, getAdapterUID(url), getUID(url.getDeviceAddress()));
+        }
     }
 
     public static URL getURL(Thing thing) {
@@ -38,14 +49,13 @@ public class BluetoothUtils {
             return new URL(getAddressFromUID(thing.getUID().getId()), null);
         } else {
             String adapterAddress = Optional.of(thing).map(Thing::getBridgeUID).map(ThingUID::getId)
-                    .map(BluetoothUtils::getAddressFromUID).orElse(null);
+                    .map(BluetoothUtils::getAddressFromUID).orElse(CombinedGovernor.COMBINED_ADDRESS);
             return new URL(adapterAddress, getAddressFromUID(thing.getUID().getId()));
         }
     }
 
     public static String getChannelUID(URL url) {
-        String channelUID = (getShortUUID(url.getServiceUUID()) +
-                "-" + getShortUUID(url.getCharacteristicUUID()));
+        String channelUID = getShortUUID(url.getServiceUUID() + "-" + getShortUUID(url.getCharacteristicUUID()));
 
         if (url.getFieldName() != null) {
             channelUID += "-" + url.getFieldName().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
@@ -55,9 +65,15 @@ public class BluetoothUtils {
     }
 
     public static String getItemUID(URL url) {
-        return BluetoothBindingConstants.THING_TYPE_BLE.getAsString().replace(":", "_") + "_" +
-                getUID(url.getAdapterAddress()) + "_" + getUID(url.getDeviceAddress()) + "_" +
-                getChannelUID(url).replaceAll("-", "_");
+        String itemUID;
+        if (isCombined(url)) {
+            itemUID = BluetoothBindingConstants.THING_TYPE_BLE.getAsString().replace(":", "_");
+        } else {
+            itemUID = BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED.getAsString().replace(":", "_")
+                    + "_" + getUID(url.getAdapterAddress());
+        }
+        itemUID += "_" + getUID(url.getDeviceAddress()) + "_" + getChannelUID(url).replaceAll("-", "_");
+        return itemUID;
     }
 
     public static boolean hasNotificationAccess(Set<CharacteristicAccessType> flags) {
@@ -73,6 +89,10 @@ public class BluetoothUtils {
 
         return flags.contains(CharacteristicAccessType.WRITE) ||
                 flags.contains(CharacteristicAccessType.WRITE_WITHOUT_RESPONSE);
+    }
+
+    public static boolean isCombined(URL url) {
+        return CombinedGovernor.COMBINED_ADDRESS.equals(url.getAdapterAddress());
     }
 
     private static String getUID(String address) {

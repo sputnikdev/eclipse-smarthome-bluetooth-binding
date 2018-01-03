@@ -14,7 +14,6 @@ import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -34,9 +33,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -45,13 +41,8 @@ import java.util.stream.Stream;
  * 
  * @author Vlad Kolotov - Initial contribution
  */
-@Component(service = ThingHandlerFactory.class, immediate = true, name = "binding.bluetooth",
-        configurationPolicy = ConfigurationPolicy.OPTIONAL)
+@Component(service = ThingHandlerFactory.class, immediate = true, name = "binding.bluetooth")
 public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
-
-    private static final Set<ThingTypeUID> SUPPORTED_THING_TYPES_UIDS =
-        Stream.of(BluetoothBindingConstants.THING_TYPE_ADAPTER, BluetoothBindingConstants.THING_TYPE_GENERIC,
-            BluetoothBindingConstants.THING_TYPE_BLE).collect(Collectors.toSet());
 
     private ServiceRegistration<BluetoothManager> bluetoothManagerServiceRegistration;
     private BluetoothManager bluetoothManager;
@@ -63,7 +54,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
-        return SUPPORTED_THING_TYPES_UIDS.contains(thingTypeUID);
+        return BluetoothBindingConstants.SUPPORTED_THING_TYPES.contains(thingTypeUID);
     }
 
     public BluetoothManager getBluetoothManager() {
@@ -127,12 +118,18 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
         if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_ADAPTER)) {
             return new AdapterHandler(this, thing);
-        } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)) {
+        }
+
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)
+                || thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC_DEDICATED)) {
             GenericBluetoothDeviceHandler genericBluetoothDeviceHandler =
                     new GenericBluetoothDeviceHandler(this, thing);
             genericBluetoothDeviceHandler.setInitialOnlineTimeout(config.getInitialOnlineTimeout());
             return genericBluetoothDeviceHandler;
-        } else if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)) {
+        }
+
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)
+                || thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED)) {
             BluetoothDeviceHandler bluetoothDeviceHandler =
                     new BluetoothDeviceHandler(this, thing);
             bluetoothDeviceHandler.setInitialOnlineTimeout(config.getInitialOnlineTimeout());

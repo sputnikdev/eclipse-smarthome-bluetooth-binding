@@ -3,10 +3,12 @@ package org.sputnikdev.esh.binding.bluetooth.discovery;
 import org.eclipse.smarthome.config.discovery.AbstractDiscoveryService;
 import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
 import org.eclipse.smarthome.config.discovery.DiscoveryService;
+import org.eclipse.smarthome.config.discovery.inbox.Inbox;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
@@ -17,8 +19,6 @@ import org.sputnikdev.bluetooth.manager.DiscoveredAdapter;
 import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
-
-import java.util.HashSet;
 
 /**
  *
@@ -32,21 +32,16 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
 
     private final Logger logger = LoggerFactory.getLogger(BluetoothDiscoveryServiceImpl.class);
     private BluetoothManager bluetoothManager;
+    private Inbox inbox;
 
     public BluetoothDiscoveryServiceImpl() {
-        super(new HashSet<ThingTypeUID>() {{
-            add(BluetoothBindingConstants.THING_TYPE_ADAPTER);
-            add(BluetoothBindingConstants.THING_TYPE_GENERIC);
-            add(BluetoothBindingConstants.THING_TYPE_BLE);
-        }}, 0, true);
+        super(BluetoothBindingConstants.SUPPORTED_THING_TYPES, 0, true);
     }
 
     @Override
     public void discovered(DiscoveredDevice device) {
-        ThingUID bridgeUID = BluetoothUtils.getAdapterUID(device.getURL());
-
-        ThingUID thingUID = device.getBluetoothClass() == 0 ?
-                BluetoothUtils.getBleDeviceUID(device.getURL()) : BluetoothUtils.getGenericDeviceUID(device.getURL());
+        ThingUID bridgeUID = device.isCombined() ? null : BluetoothUtils.getAdapterUID(device.getURL());
+        ThingUID thingUID = BluetoothUtils.getDeviceUID(device);
 
         DiscoveryResultBuilder builder = DiscoveryResultBuilder
                 .create(thingUID)
@@ -76,8 +71,18 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
     @Override
     public void deviceLost(URL url) {
         logger.info("Device lost: {}", url);
-        thingRemoved(BluetoothUtils.getGenericDeviceUID(url));
-        thingRemoved(BluetoothUtils.getBleDeviceUID(url));
+        // we don't know if this device is BLE enabled or not, so we will try to remove both
+        thingRemoved(BluetoothUtils.getDeviceUID(url, false));
+        thingRemoved(BluetoothUtils.getDeviceUID(url, true));
+    }
+
+    @Override
+    public void deactivate() {
+        super.deactivate();
+        inbox.stream().filter(thing -> {
+            ThingTypeUID thingTypeUID = thing.getThingTypeUID();
+            return BluetoothBindingConstants.SUPPORTED_THING_TYPES.contains(thingTypeUID);
+        }).forEach(thing -> inbox.remove(thing.getThingUID()));
     }
 
     @Override
@@ -96,7 +101,7 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
         bluetoothManager.stop();
     }
 
-    @Reference
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public void setBluetoothManager(BluetoothManager bluetoothManager) {
         this.bluetoothManager = bluetoothManager;
         this.bluetoothManager.setDiscoveryRate(DISCOVERY_RATE_SEC);
@@ -112,6 +117,15 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
             this.bluetoothManager.stop();
         }
         this.bluetoothManager = null;
+    }
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    public void setInbox(Inbox inbox) {
+        this.inbox = inbox;
+    }
+
+    public void unsetInbox(Inbox inbox) {
+        this.inbox = null;
     }
 
 }

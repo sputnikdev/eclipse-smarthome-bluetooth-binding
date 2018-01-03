@@ -12,11 +12,25 @@
             <channel id="rssi" typeId="rssi"/>
             <channel id="tx-power" typeId="tx-power"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
-            <channel id="nearest-adapter" typeId="nearest-adapter"/>
+            <channel id="adapter" typeId="nearest-adapter"/>
             <channel id="location" typeId="location"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
-        <config-description-ref uri="thing-type:bluetooth:generic"/>
+        <config-description-ref uri="thing-type:bluetooth:combined"/>
+    </thing-type>
+
+    <thing-type id="generic-dedicated" listed="false">
+        <label>Generic Bluetooth device</label>
+        <description>Generic Bluetooth device</description>
+        <channels>
+            <channel id="online" typeId="online"/>
+            <channel id="rssi" typeId="rssi"/>
+            <channel id="tx-power" typeId="tx-power"/>
+            <channel id="estimated-distance" typeId="estimated-distance"/>
+            <channel id="adapter" typeId="adapter"/>
+            <channel id="last-updated" typeId="last-updated"/>
+        </channels>
+        <config-description-ref uri="thing-type:bluetooth:dedicated"/>
     </thing-type>
 
     <thing-type id="ble">
@@ -29,11 +43,27 @@
             <channel id="rssi" typeId="rssi"/>
             <channel id="tx-power" typeId="tx-power"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
-            <channel id="nearest-adapter" typeId="nearest-adapter"/>
+            <channel id="adapter" typeId="nearest-adapter"/>
             <channel id="location" typeId="location"/>
             <channel id="last-updated" typeId="last-updated"/>
         </channels>
-        <config-description-ref uri="thing-type:bluetooth:generic"/>
+        <config-description-ref uri="thing-type:bluetooth:combined"/>
+    </thing-type>
+
+    <thing-type id="ble-dedicated" listed="false">
+        <label>BLE enabled Bluetooth device</label>
+        <description>BLE enabled Bluetooth device</description>
+        <channels>
+            <channel id="online" typeId="online"/>
+            <channel id="connected" typeId="connected"/>
+            <channel id="connection-control" typeId="connection-control"/>
+            <channel id="rssi" typeId="rssi"/>
+            <channel id="tx-power" typeId="tx-power"/>
+            <channel id="estimated-distance" typeId="estimated-distance"/>
+            <channel id="adapter" typeId="adapter"/>
+            <channel id="last-updated" typeId="last-updated"/>
+        </channels>
+        <config-description-ref uri="thing-type:bluetooth:dedicated"/>
     </thing-type>
 
     <channel-type id="connected">
@@ -80,7 +110,7 @@
         <state readOnly="true" pattern="%.2fm"/>
     </channel-type>
 
-    <channel-type id="last-updated">
+    <channel-type id="last-updated" advanced="true">
         <item-type>DateTime</item-type>
         <label>Last updated</label>
         <description>Date and time of the last activity</description>
@@ -98,6 +128,13 @@
         <item-type>String</item-type>
         <label>Nearest adapter</label>
         <description>Newarest adapter address</description>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="adapter">
+        <item-type>String</item-type>
+        <label>Adapter</label>
+        <description>Adapter address</description>
         <state readOnly="true"/>
     </channel-type>
 

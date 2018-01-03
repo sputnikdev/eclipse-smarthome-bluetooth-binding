@@ -72,8 +72,8 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     };
 
-    private final StringTypeChannelHandler nearestAdapterHandler = new StringTypeChannelHandler(
-            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_NEAREST_ADAPTER) {
+    private final StringTypeChannelHandler adapterHandler = new StringTypeChannelHandler(
+            GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ADAPTER) {
         @Override String getValue() {
             URL location = getGovernor().getLocation();
             return location != null ? location.getAdapterAddress() : null;
@@ -98,7 +98,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     public GenericBluetoothDeviceHandler(BluetoothHandlerFactory factory, Thing thing) {
         super(factory, thing);
         addChannelHandlers(Arrays.asList(onlineHandler, lastChangedHandler, rssiHandler, txPowerHandler,
-                estimatedDistance, nearestAdapterHandler, locationHandler));
+                estimatedDistance, adapterHandler, locationHandler));
         if (thing.getLocation() == null) {
             thing.setLocation(BluetoothBindingConstants.DEFAULT_DEVICES_LOCATION);
         }
@@ -189,7 +189,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         rssiHandler.updateChannel((int) rssi);
         estimatedDistance.updateChannel(estimatedDistance.getValue());
         locationHandler.updateChannel(locationHandler.getValue());
-        nearestAdapterHandler.updateChannel(nearestAdapterHandler.getValue());
+        adapterHandler.updateChannel(adapterHandler.getValue());
     }
 
     @Override

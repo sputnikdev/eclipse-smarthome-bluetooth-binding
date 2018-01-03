@@ -3,7 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:config-description="http://eclipse.org/smarthome/schemas/config-description/v1.0.0"
         xsi:schemaLocation="http://eclipse.org/smarthome/schemas/config-description/v1.0.0 http://eclipse.org/smarthome/schemas/config-description-1.0.0.xsd">
 
-    <config-description uri="thing-type:bluetooth:generic">
+    <config-description uri="thing-type:bluetooth:dedicated">
         <parameter-group name="presence-detection">
             <label>Presence detection</label>
             <description>Presence detetion parameters</description>
@@ -47,6 +47,70 @@
                 </ul>
                  ]]>
             </description>
+        </parameter>
+
+    </config-description>
+
+    <config-description uri="thing-type:bluetooth:combined">
+        <parameter-group name="connection">
+            <label>Connection</label>
+            <description>Connection parameters</description>
+        </parameter-group>
+        <parameter-group name="presence-detection">
+            <label>Presence detection</label>
+            <description>Presence detetion parameters</description>
+        </parameter-group>
+        <parameter-group name="indoor-positioning-system">
+            <label>Indoor positioning system</label>
+            <description>Indoor positioning system parameters</description>
+        </parameter-group>
+
+        <parameter name="onlineTimeout" type="integer" min="0" unit="s" groupName="presence-detection">
+            <label>Online timeout</label>
+            <description>Bluetooth devices not showing any activity are considered to be offline after exceeding
+                this timeout (seconds).</description>
+        </parameter>
+
+        <parameter name="rssiFilterType" type="text" groupName="indoor-positioning-system">
+            <label>Received signal strength indication (RSSI) filter</label>
+            <description>RSSI filter removes noise and spikes from RSSI in order to allow more precise estimation
+                of bluetooth device position relative to bluetooth adapters. The downside of applying RSSI filter is
+                introducing some latency in changing RSSI value. For example, if a strong (slow) filter is applied,
+                then the filtered RSSI curve follows the real RSSI readings with a delay. If a weak (fast) filter is applied,
+                then the filtered RSSI curve becomes more responsive, but gains more spikes (noise).
+            </description>
+            <default>MODERATE</default>
+            <options>
+                <option value="NONE">None</option>
+                <option value="FAST">Fast (less latency, more spikes)</option>
+                <option value="MODERATE">Moderate (medium latency, medium spikes)</option>
+                <option value="SLOW">Slow (more latency, less spikes</option>
+            </options>
+            <required>true</required>
+        </parameter>
+
+        <parameter name="txPowerMeasured" type="integer" max="0" min="-120" groupName="indoor-positioning-system">
+            <label>Measured transmit power (Tx Power)</label>
+            <description><![CDATA[Measured/estimated (user defined) Tx power of the device that is measured 1 meter away from the adapter (RSSI value).
+                <br/>This parameter is used in distance estimation between the device and an adapter. If it is set to 0 (or omitted) and:
+                <ul>
+                    <li>If the device advertises its Tx Power (e.g. beacon devices), then the advertised Tx Power is used.</li>
+                    <li>If the device does not advertise its Tx Power, then the defaul Tx Power value is used: -60.</li>
+                </ul>
+                 ]]>
+            </description>
+        </parameter>
+
+        <parameter name="connection-strategy " type="text" groupName="connection">
+            <label>Connection strategy</label>
+            <description>Connection algorithm
+            </description>
+            <default>NEAREST</default>
+            <options>
+                <option value="NEAREST">Nearest adapter</option>
+                <option value="PREFERRED">Preferred adapters</option>
+            </options>
+            <required>true</required>
         </parameter>
 
     </config-description>
