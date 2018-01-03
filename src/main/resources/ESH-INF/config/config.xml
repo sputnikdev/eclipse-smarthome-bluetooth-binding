@@ -103,14 +103,19 @@
 
         <parameter name="connection-strategy " type="text" groupName="connection">
             <label>Connection strategy</label>
-            <description>Connection algorithm
-            </description>
             <default>NEAREST</default>
             <options>
                 <option value="NEAREST">Nearest adapter</option>
-                <option value="PREFERRED">Preferred adapters</option>
+                <option value="PREFERRED">Preferred adapter</option>
             </options>
             <required>true</required>
+        </parameter>
+
+        <parameter name="preferred-adapter" type="text" groupName="connection" pattern="^(\w\w:){5}\w\w$" multiple="false">
+            <label>Preferred adapter</label>
+            <description>Note: it is used only when "PREFERRED" connection strategy is selected.</description>
+            <required>false</required>
+            <limitToOptions>false</limitToOptions>
         </parameter>
 
     </config-description>

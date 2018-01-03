@@ -73,6 +73,7 @@
                 </ul>
             ]]></description>
             <default>(?!)</default>
+            <verify>true</verify>
         </parameter>
     </config-description>
 
