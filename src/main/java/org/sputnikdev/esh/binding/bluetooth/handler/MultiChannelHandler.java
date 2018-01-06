@@ -11,6 +11,7 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
@@ -19,11 +20,13 @@ import org.sputnikdev.bluetooth.gattparser.CharacteristicFormatException;
 import org.sputnikdev.bluetooth.gattparser.FieldHolder;
 import org.sputnikdev.bluetooth.gattparser.GattRequest;
 import org.sputnikdev.bluetooth.manager.CharacteristicGovernor;
+import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.bluetooth.manager.ValueListener;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +34,7 @@ import java.util.Set;
 /**
  * @author Vlad Kolotov
  */
-class MultiChannelHandler implements ChannelHandler, ValueListener {
+class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorListener {
 
     private Logger logger = LoggerFactory.getLogger(MultiChannelHandler.class);
 
@@ -46,17 +49,19 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
     }
 
     @Override
-    public void init() { }
-
-    public void initChannels() {
+    public void init() {
+        CharacteristicGovernor characteristicGovernor = getGovernor();
+        characteristicGovernor.addGovernorListener(this);
         if (BluetoothUtils.hasNotificationAccess(flags)) {
-            getGovernor().addValueListener(this);
+            characteristicGovernor.addValueListener(this);
         }
-        updateChannels();
     }
 
+    @Override
     public void dispose() {
-        getGovernor().removeValueListener(this);
+        CharacteristicGovernor characteristicGovernor = getGovernor();
+        characteristicGovernor.removeGovernorListener(this);
+        characteristicGovernor.removeValueListener(this);
     }
 
     @Override
@@ -134,12 +139,16 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
 
     private void updateState(Channel channel, FieldHolder holder) {
         State state;
-        if (holder.getField().getFormat().isBoolean()) {
-            state = holder.getBoolean(false) ? OnOffType.ON : OnOffType.OFF;
-        } else if (holder.getField().getFormat().isNumber()) {
-            state = new DecimalType(holder.getString("0"));
+        if (holder.isValueSet()) {
+            if (holder.getField().getFormat().isBoolean()) {
+                state = holder.getBoolean() ? OnOffType.ON : OnOffType.OFF;
+            } else if (holder.getField().getFormat().isNumber()) {
+                state = new DecimalType(holder.getString());
+            } else {
+                state = new StringType(holder.getString());
+            }
         } else {
-            state = new StringType(holder.getString(""));
+            state = UnDefType.UNDEF;
         }
         handler.updateState(channel.getUID(), state);
     }
@@ -180,4 +189,14 @@ class MultiChannelHandler implements ChannelHandler, ValueListener {
     private CharacteristicGovernor getGovernor() {
         return this.handler.getBluetoothManager().getCharacteristicGovernor(url);
     }
+
+    @Override
+    public void ready(boolean isReady) {
+        if (isReady) {
+            updateChannels();
+        }
+    }
+
+    @Override
+    public void lastUpdatedChanged(Date lastActivity) { /* do nothing */ }
 }
