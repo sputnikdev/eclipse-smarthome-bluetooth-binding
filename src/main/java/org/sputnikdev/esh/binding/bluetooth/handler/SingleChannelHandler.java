@@ -5,6 +5,7 @@ import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.RefreshType;
 import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
@@ -50,7 +51,7 @@ abstract class SingleChannelHandler<V, S extends Command> implements ChannelHand
 
     @Override
     public URL getURL() {
-        return this.handler.getURL();
+        return handler.getURL();
     }
 
     public void init() {
@@ -69,16 +70,12 @@ abstract class SingleChannelHandler<V, S extends Command> implements ChannelHand
     }
 
     void updateChannel(S command) {
-        if (command != null) {
-            handler.updateState(channelID, (State) command);
-        }
+        handler.updateState(channelID, command != null ? (State) command : UnDefType.UNDEF);
     }
 
     void updateChannel(V value) {
         State state = (State) convert(value);
-        if (state != null) {
-            handler.updateState(channelID, (State) convert(value));
-        }
+        handler.updateState(channelID, state != null ? state : UnDefType.UNDEF);
     }
 
     abstract V convert(S command);
@@ -89,7 +86,7 @@ abstract class SingleChannelHandler<V, S extends Command> implements ChannelHand
         updateThing(value);
         updateChannel(value);
     }
-    void updateThing(V value) {}
+    void updateThing(V value) { }
     V getValue() { return null; }
     V getDefaultValue() { return null; }
 
