@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -34,6 +35,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     private Logger logger = LoggerFactory.getLogger(BluetoothDeviceHandler.class);
     private boolean initialConnectionControl;
+    private ScheduledFuture<?> syncTask;
 
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
             BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED) {
@@ -83,13 +85,15 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
         updateStatus(ThingStatus.ONLINE);
 
-        scheduler.scheduleAtFixedRate(() -> {
+        syncTask = scheduler.scheduleAtFixedRate(() -> {
             connectionControlHandler.updateChannel(connectionControlHandler.getValue());
         }, 5, 1, TimeUnit.SECONDS);
     }
 
     @Override
     public void dispose() {
+        syncTask.cancel(true);
+        syncTask = null;
         DeviceGovernor deviceGovernor = getGovernor();
         deviceGovernor.removeBluetoothSmartDeviceListener(this);
         deviceGovernor.setConnectionControl(false);
