@@ -25,7 +25,7 @@ public class AdaptersConfigOptionProvider implements ConfigOptionProvider {
 
     @Override
     public Collection<ParameterOption> getParameterOptions(URI uri, String param, Locale locale) {
-        if ("preferred-adapter".equals(param) && bluetoothManager != null) {
+        if ("preferredAdapter".equals(param) && bluetoothManager != null) {
             return bluetoothManager.getDiscoveredAdapters().stream()
                     .filter(adapter -> !adapter.isCombined())
                     .map(this::convert)

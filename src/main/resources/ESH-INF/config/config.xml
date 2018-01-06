@@ -101,19 +101,27 @@
             </description>
         </parameter>
 
-        <parameter name="connection-strategy " type="text" groupName="connection">
+        <parameter name="connectionStrategy" type="text" groupName="connection">
             <label>Connection strategy</label>
-            <default>NEAREST</default>
+            <description><![CDATA[Connection strategy that is to be used when the "connection control" is enabled. The following strategies are supported:
+                    <ul>
+                        <li>Nearest adapter: the nearest adapter is selected automatically.
+                        <br/>&nbsp;&nbsp;&nbsp;&nbsp;Note: the selected adapter won't be changed while the device is connected even if the selected adapter is no longer the nearest. If disconnected, a new nearest adapter might be selected.</li>
+                        <li>Preferred adapter: adapter is specified by user.</li>
+                    </ul>
+                ]]>
+            </description>
+            <default>NEAREST_ADAPTER</default>
             <options>
-                <option value="NEAREST">Nearest adapter</option>
-                <option value="PREFERRED">Preferred adapter</option>
+                <option value="NEAREST_ADAPTER">Nearest adapter</option>
+                <option value="PREFERRED_ADAPTER">Preferred adapter</option>
             </options>
             <required>true</required>
         </parameter>
 
-        <parameter name="preferred-adapter" type="text" groupName="connection" pattern="^(\w\w:){5}\w\w$" multiple="false">
+        <parameter name="preferredAdapter" type="text" groupName="connection" pattern="^(\w\w:){5}\w\w$" multiple="false">
             <label>Preferred adapter</label>
-            <description>Note: it is used only when "PREFERRED" connection strategy is selected.</description>
+            <description>Note: it is used only when "Preferred adapter" connection strategy is selected.</description>
             <required>false</required>
             <limitToOptions>false</limitToOptions>
         </parameter>

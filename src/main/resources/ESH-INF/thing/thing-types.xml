@@ -4,9 +4,10 @@
                           xmlns:thing="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0"
                           xsi:schemaLocation="http://eclipse.org/smarthome/schemas/thing-description/v1.0.0 http://eclipse.org/smarthome/schemas/thing-description-1.0.0.xsd">
 
+
     <thing-type id="generic">
-        <label>Generic Bluetooth device</label>
-        <description>Generic Bluetooth device</description>
+        <label>Combined generic Bluetooth device</label>
+        <description>This is a special type of bluetooth "thing" that spans the same physical bluetooth device found by multiple bluetooth adapters into a single "thing".</description>
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="rssi" typeId="rssi"/>
@@ -21,7 +22,7 @@
 
     <thing-type id="generic-dedicated" listed="false">
         <label>Generic Bluetooth device</label>
-        <description>Generic Bluetooth device</description>
+        <description>This is a simple bluetooth "thing" that represents a physical bluetooth device found by a single bluetooth adapter.</description>
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="rssi" typeId="rssi"/>
@@ -34,12 +35,13 @@
     </thing-type>
 
     <thing-type id="ble">
-        <label>BLE enabled Bluetooth device</label>
-        <description>BLE enabled Bluetooth device</description>
+        <label>Combined BLE enabled Bluetooth device</label>
+        <description>This is a special type of bluetooth "thing" that spans the same physical bluetooth device found by multiple bluetooth adapters into a single "thing".</description>
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="connected" typeId="connected"/>
             <channel id="connection-control" typeId="connection-control"/>
+            <channel id="connected-adapter" typeId="connected-adapter"/>
             <channel id="rssi" typeId="rssi"/>
             <channel id="tx-power" typeId="tx-power"/>
             <channel id="estimated-distance" typeId="estimated-distance"/>
@@ -52,7 +54,7 @@
 
     <thing-type id="ble-dedicated" listed="false">
         <label>BLE enabled Bluetooth device</label>
-        <description>BLE enabled Bluetooth device</description>
+        <description>This is a simple bluetooth "thing" that represents a physical bluetooth device found by a single bluetooth adapter.</description>
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="connected" typeId="connected"/>
@@ -77,6 +79,13 @@
         <item-type>Switch</item-type>
         <label>Connection control</label>
         <description>Controls whether device is connected</description>
+    </channel-type>
+
+    <channel-type id="connected-adapter">
+        <item-type>String</item-type>
+        <label>Connected adapter</label>
+        <description>An adapter MAC address the device is currently connected to</description>
+        <state readOnly="true"/>
     </channel-type>
 
     <channel-type id="online">
@@ -142,6 +151,30 @@
         <item-type>String</item-type>
         <label>Location</label>
         <description>Location of the device</description>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="characteristic-advanced-readonly-field" advanced="true">
+        <item-type>String</item-type>
+        <label>Bluetooth system field</label>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="characteristic-advanced-editable-field" advanced="true">
+        <item-type>String</item-type>
+        <label>Bluetooth system field</label>
+        <state readOnly="false"/>
+    </channel-type>
+
+    <channel-type id="characteristic-editable-field">
+        <item-type>String</item-type>
+        <label>Bluetooth field</label>
+        <state readOnly="false"/>
+    </channel-type>
+
+    <channel-type id="characteristic-readonly-field">
+        <item-type>String</item-type>
+        <label>Bluetooth field</label>
         <state readOnly="true"/>
     </channel-type>
 

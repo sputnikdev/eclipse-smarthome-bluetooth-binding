@@ -75,6 +75,16 @@
             <default>(?!)</default>
             <verify>true</verify>
         </parameter>
+        <parameter name="advancedGattServices" type="text" multiple="true" pattern="^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$">
+            <label>Advanced GATT services</label>
+            <description>List of GATT service UUIDs to be excluded from the automatic channel linkage. No items/channels will be automatically created for these services. Generic Access and Generic Attribute services are selected by default.</description>
+            <options>
+                <option value="00001800-0000-1000-8000-00805f9b34fb">00001800-0000-1000-8000-00805f9b34fb (Generic Access)</option>
+                <option value="00001801-0000-1000-8000-00805f9b34fb">00001801-0000-1000-8000-00805f9b34fb (Generic Attribute)</option>
+            </options>
+            <limitToOptions>false</limitToOptions>
+            <advanced>true</advanced>
+        </parameter>
     </config-description>
 
 </binding:binding>

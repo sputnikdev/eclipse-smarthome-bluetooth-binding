@@ -1,6 +1,6 @@
 package org.sputnikdev.esh.binding.bluetooth.internal;
 
-public class GenericDeviceConfig {
+public class DeviceConfig {
 
     public enum RssiFilterType {
         //TODO rewise this settings
@@ -29,6 +29,8 @@ public class GenericDeviceConfig {
     private Integer onlineTimeout;
     private String rssiFilterType;
     private Integer txPowerMeasured;
+    private String connectionStrategy;
+    private String preferredAdapter;
 
     public Integer getOnlineTimeout() {
         return onlineTimeout;
@@ -52,5 +54,21 @@ public class GenericDeviceConfig {
 
     public void setTxPowerMeasured(Integer txPowerMeasured) {
         this.txPowerMeasured = txPowerMeasured;
+    }
+
+    public String getConnectionStrategy() {
+        return connectionStrategy;
+    }
+
+    public void setConnectionStrategy(String connectionStrategy) {
+        this.connectionStrategy = connectionStrategy;
+    }
+
+    public String getPreferredAdapter() {
+        return preferredAdapter;
+    }
+
+    public void setPreferredAdapter(String preferredAdapter) {
+        this.preferredAdapter = preferredAdapter;
     }
 }

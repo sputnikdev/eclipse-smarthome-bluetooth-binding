@@ -33,6 +33,12 @@ public final class BluetoothBindingConstants {
     // List of all Channel ids
     public static final String CHANNEL_CHARACTERISTIC = "characteristic";
     public static final String CHANNEL_CHARACTERISTIC_FIELD = "characteristic-field";
+    public static final String CHANNEL_CHARACTERISTIC_ADVANCED_READONLY_FIELD =
+            "characteristic-advanced-readonly-field";
+    public static final String CHANNEL_CHARACTERISTIC_ADVANCED_EDITABLE_FIELD =
+            "characteristic-advanced-editable-field";
+    public static final String CHANNEL_CHARACTERISTIC_READONLY_FIELD = "characteristic-readonly-field";
+    public static final String CHANNEL_CHARACTERISTIC_EDITABLE_FIELD = "characteristic-editable-field";
     public static final String CHANNEL_RSSI = "rssi";
     public static final String CHANNEL_TX_POWER = "tx-power";
     public static final String CHANNEL_ESTIMATED_DISTANCE = "estimated-distance";
@@ -44,6 +50,7 @@ public final class BluetoothBindingConstants {
     public static final String CHANNEL_DISCOVERING_CONTROL = "discovering-control";
     public static final String CHANNEL_LOCATION = "location";
     public static final String CHANNEL_ADAPTER = "adapter";
+    public static final String CHANNEL_CONNECTED_ADAPTER = "connected-adapter";
 
     // Thing (device) properties
     public static final String PROPERTY_ADDRESS = "Address";

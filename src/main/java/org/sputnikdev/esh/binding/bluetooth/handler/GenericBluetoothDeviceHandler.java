@@ -13,7 +13,7 @@ import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
-import org.sputnikdev.esh.binding.bluetooth.internal.GenericDeviceConfig;
+import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -63,10 +63,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_ESTIMATED_DISTANCE) {
         @Override Double getValue() {
             if (getGovernor().isReady()) {
-                double distance = getGovernor().getEstimatedDistance();
-                if (distance != 0.0) {
-                    return distance;
-                }
+                return getGovernor().getEstimatedDistance();
             }
             return null;
         }
@@ -84,11 +81,11 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
             GenericBluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_LOCATION) {
         @Override String getValue() {
             URL locationURL = getGovernor().getLocation();
-            String location = "Unknown";
+            String location = null;
             if (locationURL != null) {
                 Thing adapterThing = getThingRegistry().get(BluetoothUtils.getAdapterUID(locationURL));
                 if (adapterThing != null) {
-                    location =  adapterThing.getLocation();
+                    location = adapterThing.getLocation();
                 }
             }
             return location;
@@ -106,11 +103,13 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     @Override
     public void initialize() {
-        super.initialize();
         DeviceGovernor deviceGovernor = getGovernor();
         deviceGovernor.addGenericBluetoothDeviceListener(this);
         deviceGovernor.addGovernorListener(this);
         deviceGovernor.setBlockedControl(false);
+
+        // init channel handlers
+        super.initialize();
 
         Configuration conf = editConfiguration();
         if (conf.get("onlineTimeout") == null) {
@@ -128,7 +127,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     @Override
     protected void updateDevice(Configuration configuration) {
-        GenericDeviceConfig config = configuration.as(GenericDeviceConfig.class);
+        DeviceConfig config = configuration.as(DeviceConfig.class);
 
         DeviceGovernor deviceGovernor = getGovernor();
         deviceGovernor.setOnlineTimeout(config.getOnlineTimeout() != null
@@ -137,9 +136,9 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         if (config.getRssiFilterType() == null) {
             deviceGovernor.setRssiFilteringEnabled(false);
         } else {
-            GenericDeviceConfig.RssiFilterType rssiFilterType =
-                    GenericDeviceConfig.RssiFilterType.valueOf(config.getRssiFilterType());
-            if (rssiFilterType == GenericDeviceConfig.RssiFilterType.NONE) {
+            DeviceConfig.RssiFilterType rssiFilterType =
+                    DeviceConfig.RssiFilterType.valueOf(config.getRssiFilterType());
+            if (rssiFilterType == DeviceConfig.RssiFilterType.NONE) {
                 deviceGovernor.setRssiFilteringEnabled(false);
             } else {
                 if (deviceGovernor.getRssiFilter() instanceof RssiKalmanFilter) {
@@ -147,6 +146,8 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
                     RssiKalmanFilter filter = (RssiKalmanFilter) deviceGovernor.getRssiFilter();
                     filter.setProcessNoise(rssiFilterType.getProcessNoise());
                     filter.setMeasurementNoise(rssiFilterType.getMeasurmentNoise());
+                } else {
+                    throw new IllegalStateException("Unknow RSSI filter: " + deviceGovernor.getRssiFilter());
                 }
             }
         }
@@ -187,9 +188,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     @Override
     public void rssiChanged(short rssi) {
         rssiHandler.updateChannel((int) rssi);
-        estimatedDistance.updateChannel(estimatedDistance.getValue());
-        locationHandler.updateChannel(locationHandler.getValue());
-        adapterHandler.updateChannel(adapterHandler.getValue());
+        updateLocationChannels();
     }
 
     @Override
@@ -210,6 +209,12 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     public void setInitialOnlineTimeout(int initialOnlineTimeout) {
         this.initialOnlineTimeout = initialOnlineTimeout;
+    }
+
+    protected void updateLocationChannels() {
+        estimatedDistance.updateChannel(estimatedDistance.getValue());
+        locationHandler.updateChannel(locationHandler.getValue());
+        adapterHandler.updateChannel(adapterHandler.getValue());
     }
 
 }

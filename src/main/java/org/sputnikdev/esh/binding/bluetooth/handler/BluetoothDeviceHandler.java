@@ -1,5 +1,6 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
+import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.Thing;
@@ -7,15 +8,21 @@ import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.manager.BluetoothSmartDeviceListener;
+import org.sputnikdev.bluetooth.manager.CombinedDeviceGovernor;
+import org.sputnikdev.bluetooth.manager.ConnectionStrategy;
 import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GattService;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
+import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -48,14 +55,25 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         }
     };
 
-    private final BluetoothChannelBuilder channelBuilder;
+    private final StringTypeChannelHandler connectedAdapterHandler = new StringTypeChannelHandler(
+            BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED_ADAPTER) {
+        @Override String getValue() {
+            DeviceGovernor deviceGovernor = getGovernor();
+            String adapter = null;
+            if (deviceGovernor instanceof CombinedDeviceGovernor) {
+                URL connectedURL = ((CombinedDeviceGovernor) deviceGovernor).getConnectedAdapter();
+                if (connectedURL != null) {
+                    adapter = connectedURL.getAdapterAddress();
+                }
+            }
+            return adapter;
+        }
+    };
 
 
     public BluetoothDeviceHandler(BluetoothHandlerFactory factory, Thing thing) {
         super(factory, thing);
-        addChannelHandler(connectedHandler);
-        addChannelHandler(connectionControlHandler);
-        channelBuilder = new BluetoothChannelBuilder(this);
+        addChannelHandlers(Arrays.asList(connectedHandler, connectionControlHandler, connectedAdapterHandler));
     }
 
     @Override
@@ -64,6 +82,10 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         getGovernor().addBluetoothSmartDeviceListener(this);
 
         updateStatus(ThingStatus.ONLINE);
+
+        scheduler.scheduleAtFixedRate(() -> {
+            connectionControlHandler.updateChannel(connectionControlHandler.getValue());
+        }, 5, 1, TimeUnit.SECONDS);
     }
 
     @Override
@@ -77,10 +99,14 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     @Override
     public void connected() {
         connectedHandler.updateChannel(true);
+        connectedAdapterHandler.updateChannel(connectedAdapterHandler.getValue());
+        updateLocationChannels();
     }
+
     @Override
     public void disconnected() {
         connectedHandler.updateChannel(false);
+        connectedAdapterHandler.updateChannel(connectedAdapterHandler.getValue());
     }
 
     @Override
@@ -88,7 +114,9 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         ThingBuilder builder = editThing();
 
         logger.info("Building channels for services: {}", gattServices.size());
-        Map<MultiChannelHandler, List<Channel>> channels = channelBuilder.buildChannels(gattServices);
+        Map<MultiChannelHandler, List<Channel>> channels = new BluetoothChannelBuilder(this)
+                .withAdvancedServices(getBindingConfig().getAdvancedGattServices())
+                .buildChannels(gattServices);
 
         for (Map.Entry<MultiChannelHandler, List<Channel>> entry : channels.entrySet()) {
             ChannelHandler channelHandler = entry.getKey();
@@ -101,7 +129,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
         for (MultiChannelHandler channelHandler : channels.keySet()) {
             try {
-                channelHandler.initChannels();
+                channelHandler.init();
             } catch (Exception ex) {
                 logger.error("Could not update channel handler: {}", channelHandler.getURL(), ex);
             }
@@ -109,7 +137,25 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     }
 
     @Override
-    public void servicesUnresolved() { }
+    public void servicesUnresolved() {
+        getChannelHandlers().stream().filter(handler -> handler instanceof MultiChannelHandler)
+                .forEach(ChannelHandler::dispose);
+    }
+
+    @Override
+    protected void updateDevice(Configuration configuration) {
+        super.updateDevice(configuration);
+        DeviceConfig config = configuration.as(DeviceConfig.class);
+
+        //TODO decide if it is time to split this class into two: simple handler and combined hendler
+        DeviceGovernor deviceGovernor = getGovernor();
+        if (deviceGovernor instanceof CombinedDeviceGovernor) {
+            CombinedDeviceGovernor combinedDeviceGovernor = (CombinedDeviceGovernor) deviceGovernor;
+            combinedDeviceGovernor.setConnectionStrategy(ConnectionStrategy.valueOf(config.getConnectionStrategy()));
+            combinedDeviceGovernor.setPreferredAdapter(
+                    config.getPreferredAdapter() != null ? new URL(config.getPreferredAdapter(), null) : null);
+        }
+    }
 
     public boolean isInitialConnectionControl() {
         return initialConnectionControl;

@@ -2,6 +2,11 @@ package org.sputnikdev.esh.binding.bluetooth.internal;
 
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class BluetoothBindingConfig {
 
     private String extensionFolder = BluetoothBindingConstants.DEFAULT_EXTENSION_FOLDER;
@@ -11,6 +16,12 @@ public class BluetoothBindingConfig {
     private String serialPortRegex;
     private boolean combinedAdaptersEnabled;
     private boolean combinedDevicesEnabled;
+    private List<String> advancedGattServices = new ArrayList<>();
+
+    public BluetoothBindingConfig() {
+        advancedGattServices.addAll(Arrays.asList("00001800-0000-1000-8000-00805f9b34fb",
+                "00001801-0000-1000-8000-00805f9b34fb"));
+    }
 
     public String getExtensionFolder() {
         return extensionFolder;
@@ -66,5 +77,13 @@ public class BluetoothBindingConfig {
 
     public void setCombinedDevicesEnabled(boolean combinedDevicesEnabled) {
         this.combinedDevicesEnabled = combinedDevicesEnabled;
+    }
+
+    public List<String> getAdvancedGattServices() {
+        return advancedGattServices;
+    }
+
+    public void setAdvancedGattServices(List<String> advancedGattServices) {
+        this.advancedGattServices = Collections.unmodifiableList(advancedGattServices);
     }
 }
