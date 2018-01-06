@@ -16,6 +16,7 @@ import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothGovernor;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothBindingConfig;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
@@ -58,6 +59,9 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         logger.info("Disposing Abstract Bluetooth Handler");
         super.dispose();
         disposeChannelHandlers();
+        logger.info("Disposing bluetooth object: {}", url);
+        getBluetoothManager().disposeDescendantGovernors(url);
+        getBluetoothManager().disposeGovernor(url);
         logger.info("Abstract Bluetooth Handler has been disposed");
     }
 
@@ -126,7 +130,11 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         return factory.getThingRegistry();
     }
 
-    List<ChannelHandler> getChannelHandlers() {
+    protected BluetoothBindingConfig getBindingConfig() {
+        return factory.getBindingConfig();
+    }
+
+    protected List<ChannelHandler> getChannelHandlers() {
         return channelHandlers;
     }
 
