@@ -55,7 +55,7 @@ public class BluetoothUtils {
     }
 
     public static String getChannelUID(URL url) {
-        String channelUID = getShortUUID(url.getServiceUUID() + "-" + getShortUUID(url.getCharacteristicUUID()));
+        String channelUID = getShortUUID(url.getServiceUUID()) + "-" + getShortUUID(url.getCharacteristicUUID());
 
         if (url.getFieldName() != null) {
             channelUID += "-" + url.getFieldName().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
