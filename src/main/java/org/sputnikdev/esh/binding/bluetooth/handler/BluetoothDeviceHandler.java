@@ -83,8 +83,6 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         super.initialize();
         getGovernor().addBluetoothSmartDeviceListener(this);
 
-        updateStatus(ThingStatus.ONLINE);
-
         syncTask = scheduler.scheduleAtFixedRate(() -> {
             connectionControlHandler.updateChannel(connectionControlHandler.getValue());
         }, 5, 1, TimeUnit.SECONDS);

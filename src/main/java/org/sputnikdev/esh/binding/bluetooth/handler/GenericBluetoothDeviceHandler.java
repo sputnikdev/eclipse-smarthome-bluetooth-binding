@@ -122,7 +122,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         if (deviceGovernor.isReady()) {
             deviceGovernor.setAlias(thing.getLabel());
         }
-        updateStatus(ThingStatus.ONLINE);
+        updateStatus(deviceGovernor.isOnline() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
     }
 
     @Override
