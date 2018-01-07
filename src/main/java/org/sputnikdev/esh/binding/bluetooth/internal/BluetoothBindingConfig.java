@@ -15,7 +15,7 @@ public class BluetoothBindingConfig {
     private boolean initialConnectionControl = BluetoothBindingConstants.DEFAULT_CONNECTION_CONTROL;
     private String serialPortRegex;
     private boolean combinedAdaptersEnabled;
-    private boolean combinedDevicesEnabled;
+    private boolean combinedDevicesEnabled = true;
     private List<String> advancedGattServices = new ArrayList<>();
 
     public BluetoothBindingConfig() {

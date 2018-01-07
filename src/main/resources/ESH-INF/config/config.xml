@@ -6,7 +6,7 @@
     <config-description uri="thing-type:bluetooth:dedicated">
         <parameter-group name="presence-detection">
             <label>Presence detection</label>
-            <description>Presence detetion parameters</description>
+            <description>Presence detection parameters</description>
         </parameter-group>
         <parameter-group name="indoor-positioning-system">
             <label>Indoor positioning system</label>
@@ -130,8 +130,8 @@
 
     <config-description uri="thing-type:bluetooth:adapter">
         <parameter-group name="indoor-positioning-system">
-            <label>Indoor positioning system</label>
-            <description>Indoor positioning system parameters</description>
+            <label>Indoor positioning</label>
+            <description>Indoor positioning parameters</description>
         </parameter-group>
         <parameter name="signalPropagationExponent" type="decimal" max="2" min="4" groupName="indoor-positioning-system">
             <label>Signal propagation exponent</label>

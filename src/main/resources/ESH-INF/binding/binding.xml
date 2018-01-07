@@ -6,12 +6,14 @@
 
     <name>Bluetooth Binding</name>
     <description><![CDATA[
-        A binding for Bluetooth.<br/>
-        Supports the following features:<br/>
+        A binding for Bluetooth.
+        <br/> Supports the following features:
+        <br/>
         <ul>
-            <li>Automatic discovery of bluetooth adapters and devices</li>
+            <li>Bluetooth adapters and devices automatic discovery</li>
             <li>Managing bluetooth adapters (multiple adapters supported)</li>
-            <li>Monitoring availability of bluetooth devices (whether they are in range of bluetooth adapters)</li>
+            <li>Presence detection. Monitoring availability of bluetooth devices (whether they are in range of bluetooth adapters)</li>
+            <li>Indoor Positioning. Locating bluetooth devices based on estimated distance to bluetooth adapters</li>
             <li>Comprehensive support for BLE enabled (Bluetooth Smart) bluetooth devices. Mapping Bluetooth GATT services/characteristics/fields into openhab channels.</li>
             <li>Robustness in maintaining connectivity (automatic connection recovery)</li>
         </ul>
@@ -20,18 +22,18 @@
     <author>Vlad Kolotov</author>
 
     <config-description>
-        <parameter name="combinedAdaptersEnabled" type="boolean">
-            <label>Combine adapters</label>
-            <description>If selected all discovered adapters are combined into a single thing and therefore can be controlled as a single unit.</description>
-            <required>true</required>
-            <default>false</default>
-        </parameter>
-        <parameter name="combinedDevicesEnabled" type="boolean">
-            <label>Combine devices</label>
-            <description>If selected all discovered devices that have the same adress (discovered through different adapters) are combined into a single thing and therefore can be controlled as a single unit.</description>
-            <required>true</required>
-            <default>true</default>
-        </parameter>
+        <!--<parameter name="combinedAdaptersEnabled" type="boolean">-->
+            <!--<label>Combine adapters</label>-->
+            <!--<description>If selected all discovered adapters are combined into a single thing and therefore can be controlled as a single unit.</description>-->
+            <!--<required>true</required>-->
+            <!--<default>false</default>-->
+        <!--</parameter>-->
+        <!--<parameter name="combinedDevicesEnabled" type="boolean">-->
+            <!--<label>Combine devices</label>-->
+            <!--<description>If selected all discovered devices that have the same adress (discovered through different adapters) are combined into a single thing and therefore can be controlled as a single unit.</description>-->
+            <!--<required>true</required>-->
+            <!--<default>true</default>-->
+        <!--</parameter>-->
         <parameter name="extensionFolder" type="text">
             <label>GATT services and characteristics extension folder</label>
             <description><![CDATA[

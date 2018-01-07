@@ -3,11 +3,11 @@ package org.sputnikdev.esh.binding.bluetooth.internal;
 public class DeviceConfig {
 
     public enum RssiFilterType {
-        //TODO rewise this settings
+        //TODO revise this settings
         NONE(0, 0),
         FAST(0.125, 0.8),
-        MODERATE(0.125, 15),
-        SLOW(0.125, 30);
+        MODERATE(0.125, 5),
+        SLOW(0.125, 15);
 
         private final double processNoise;
         private final double measurmentNoise;
