@@ -136,11 +136,11 @@
         <parameter name="signalPropagationExponent" type="decimal" max="2" min="4" groupName="indoor-positioning-system">
             <label>Signal propagation exponent</label>
             <description>Estimated (user defined) signal propagation exponent. This parameter is used in distance estimation between the adapter and bluetooth devices.
-                This factor is specific to the surrounding environment, i.e. how efficient the signal passes through obsticles on its way.
+                This factor is specific to the surrounding environment, i.e. how efficient the signal passes through obstacles on its way.
             </description>
             <options>
-                <option value="2.0">Outdoors, no obsticles</option>
-                <option value="3.0">Indoors, moderate obsticles</option>
+                <option value="2.0">Outdoors, no obstacles</option>
+                <option value="3.0">Indoors, moderate obstacles</option>
                 <option value="4.0">Indoors, walls and furniture</option>
             </options>
             <default>4.0</default>
