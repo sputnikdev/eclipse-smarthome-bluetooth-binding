@@ -11,15 +11,15 @@
         <br/>
         <ul>
             <li>Bluetooth adapters and devices automatic discovery</li>
-            <li>Presence detection. Bluetooth devices can be monitored whether they are in range of a Bluetooth adapter (or multiple Bluetooth adapters).
+            <li>Presence detection. Bluetooth devices can be monitored whether they are in range of a bluetooth adapter (or multiple bluetooth adapters).
             This feature makes it possible to detect if an object or a person enters or leaves a building or a room.</li>
-            <li>Indoor positioning. Location of a Bluetooth device can be identified based on estimated distance between the device and adapters.
+            <li>Indoor positioning. Location of a bluetooth device can be identified based on estimated distance between the device and adapters.
             This feature allows you to locate things (like your phone or keys) in your house or detect who exactly is in a room. </li>
-            <li>Comprehensive support for Bluetooth Low Energy (Bluetooth Smart) devices. If a bluetooth device supports Bluetooth specification 4.0,
+            <li>Comprehensive support for Bluetooth Low Energy (Bluetooth Smart) devices. If a bluetooth device supports the Bluetooth specification 4.0,
             then the standard <a href="https://www.bluetooth.com/specifications/gatt" target="_blank">GATT services and characteristics</a> can be automatically recognized and
             corresponding thing channels be created for each GATT characteristic and its GATT fields. This feature allows you to connect
-            Bluetooth smart sensors and other Bluetooth devices.</li>
-            <li>Custom built (non-standard) BLE Bluetooth devices support. A custom built Bluetooth device can be automatically recognized like a standard one
+            Bluetooth Smart sensors and other bluetooth devices.</li>
+            <li>Custom built (non-standard) BLE Bluetooth devices support. A custom built bluetooth device can be automatically recognized like a standard one
             by specifying a folder on the system disk with custom GATT service and characteristic definitions in XML files.</li>
             <li>Robustness in maintaining connectivity (automatic connection recovery)</li>
         </ul>
@@ -55,7 +55,7 @@
         </parameter>
         <parameter name="initialConnectionControl" type="boolean">
             <label>Initial connection control</label>
-            <description>If enabled, connection is kept on for newly added bluetooth devices, otherwise off. Can be customized for each Bluetooth device.</description>
+            <description>If enabled, connection is kept on for newly added bluetooth devices, otherwise off. Can be customized for each bluetooth device.</description>
             <default>true</default>
         </parameter>
         <parameter name="serialPortRegex" type="text">
