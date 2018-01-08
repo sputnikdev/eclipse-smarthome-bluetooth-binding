@@ -41,7 +41,7 @@ There is only one "thing" that represents all adapters (Generic and BlueGiga) in
 ![ESH Bluetooth Binding adaptes discivery](binding-tinyb-adapters-discovery.png?raw=true "ESH Bluetooth Binding adapters discovery") 
 * BlueGiga adapters will appear after configuring serial port regular expression on the binding configuration page:
 ![ESH Bluegiga adapters configure](binding-bluegiga-adapter-configure.png?raw=true "ESH Bluegiga adapters configure")
-WARNING!: It is very important not to make the regular expression too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. 
+**WARNING!:** It is very important not to make the regular expression too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. 
 If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidentally matched by the regular expression. USE THIS FEATURE AT YOUR OWN RISK.
 Regular expression examples:
     - Defining some specific serial ports (preferable option): (/dev/ttyACM1)|(/dev/ttyACM2)
