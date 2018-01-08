@@ -6,7 +6,7 @@
 
     <bridge-type id="adapter">
         <label>Bluetooth Adapter</label>
-        <description>Bluetooth Adapter</description>
+        <description>This thing represents Bluetooth adapters.</description>
         <channels>
             <channel id="discovering" typeId="discovering"/>
             <channel id="discovering-control" typeId="discovering-control"/>

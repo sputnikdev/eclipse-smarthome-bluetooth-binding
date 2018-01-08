@@ -7,7 +7,8 @@
 
     <thing-type id="generic">
         <label>Generic Bluetooth device</label>
-        <description>A generic bluetooth device thing to work with older versions of Bluetooth devices (e.g. version 3.x and older).</description>
+        <description>This thing is intended to be used for older versions of Bluetooth devices (prior to 4.0) which do not support BLE technology.
+            Only Presence detection and Indoor positioning features are available for this type of Bluetooth devices.</description>
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="rssi" typeId="rssi"/>
@@ -36,7 +37,7 @@
 
     <thing-type id="ble">
         <label>BLE enabled Bluetooth device</label>
-        <description>A bluetooth device thing to work with Bluetooth devices that support BLE (Bluetooth Low Energy or Bluetooth Smart) specification.</description>
+        <description>This thing is used for newer versions of Bluetooth devices which supports BLE technology. All binding features are supported by this thing.</description>
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="connected" typeId="connected"/>

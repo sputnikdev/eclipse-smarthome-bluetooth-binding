@@ -6,15 +6,21 @@
 
     <name>Bluetooth Binding</name>
     <description><![CDATA[
-        A binding for Bluetooth.
-        <br/> Supports the following features:
+        The Bluetooth binding brings support for bluetooth devices into Eclipse SmartHome Framework.
+        <br/> The following main use cases are supported by the binding:
         <br/>
         <ul>
             <li>Bluetooth adapters and devices automatic discovery</li>
-            <li>Managing bluetooth adapters (multiple adapters supported)</li>
-            <li>Presence detection. Monitoring availability of bluetooth devices (whether they are in range of bluetooth adapters)</li>
-            <li>Indoor Positioning. Locating bluetooth devices based on estimated distance to bluetooth adapters</li>
-            <li>Comprehensive support for BLE enabled (Bluetooth Smart) bluetooth devices. Mapping Bluetooth GATT services/characteristics/fields into openhab channels.</li>
+            <li>Presence detection. Bluetooth devices can be monitored whether they are in range of a Bluetooth adapter (or multiple Bluetooth adapters).
+            This feature makes it possible to detect if an object or a person enters or leaves a building or a room.</li>
+            <li>Indoor positioning. Location of a Bluetooth device can be identified based on estimated distance between the device and adapters.
+            This feature allows you to locate things (like your phone or keys) in your house or detect who exactly is in a room. </li>
+            <li>Comprehensive support for Bluetooth Low Energy (Bluetooth Smart) devices. If a bluetooth device supports Bluetooth specification 4.0,
+            then the standard <a href="https://www.bluetooth.com/specifications/gatt" target="_blank">GATT services and characteristics</a> can be automatically recognized and
+            corresponding thing channels be created for each GATT characteristic and its GATT fields. This feature allows you to connect
+            Bluetooth smart sensors and other Bluetooth devices.</li>
+            <li>Custom built (non-standard) BLE Bluetooth devices support. A custom built Bluetooth device can be automatically recognized like a standard one
+            by specifying a folder on the system disk with custom GATT service and characteristic definitions in XML files.</li>
             <li>Robustness in maintaining connectivity (automatic connection recovery)</li>
         </ul>
             ]]>
@@ -34,14 +40,6 @@
             <!--<required>true</required>-->
             <!--<default>true</default>-->
         <!--</parameter>-->
-        <parameter name="extensionFolder" type="text">
-            <label>GATT services and characteristics extension folder</label>
-            <description><![CDATA[
-                A folder on the system disk that contains your custom definitions for GATT services and characteristics for automatic recognition of bluetooth devices GATT attributes.<br/>
-                See more: https://github.com/sputnikdev/bluetooth-gatt-parser<br/>
-                Example: /home/pi/.bluetooth_smart]]></description>
-            <required>false</required>
-        </parameter>
         <parameter name="updateRate" type="integer" min="1" max="60" unit="s">
             <label>Bluetooth devices update rate</label>
             <description>How often bluetooth devices are checked/updated (seconds, default: 10s)?</description>
@@ -61,12 +59,12 @@
             <default>true</default>
         </parameter>
         <parameter name="serialPortRegex" type="text">
-            <label>Regular expression for autodiscovery of Bluegiga adapters (serial ports)</label>
+            <label>Regular expression for BlueGiga adapters autodiscovery (serial ports)</label>
             <description><![CDATA[
-                WARNING! (ACHTUNG!): It is very important not to make the regular expression too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidently matched by the regular expression. USE THIS FEATURE AT YOUR OWN RISK.<br/>
+                WARNING!: It is very important not to make the regular expression too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidentally matched by the regular expression. USE THIS FEATURE AT YOUR OWN RISK.<br/>
                 Regular expression examples:<br/>
                 <ul>
-                    <li>Defining some specific serial ports (preferrable option): (/dev/ttyACM1)|(/dev/ttyACM2)</li>
+                    <li>Defining some specific serial ports (preferable option): (/dev/ttyACM1)|(/dev/ttyACM2)</li>
                     <li>Matching all serial ports on Linux: ((/dev/ttyACM)[0-9]{1,3})</li>
                     <li>Matching all serial ports on OSX: (/dev/tty.(usbmodem).*)</li>
                     <li>Matching all serial ports on Windows: ((COM)[0-9]{1,3})</li>
@@ -76,6 +74,15 @@
             ]]></description>
             <default>(?!)</default>
             <verify>true</verify>
+        </parameter>
+        <parameter name="extensionFolder" type="text">
+            <label>GATT services and characteristics extension folder</label>
+            <description><![CDATA[
+                A folder on the system disk which contains your custom definitions for GATT services and characteristics for automatic recognition of bluetooth GATT attributes.<br/>
+                See more: https://github.com/sputnikdev/bluetooth-gatt-parser<br/>
+                Example: /home/pi/.bluetooth_smart]]></description>
+            <required>false</required>
+            <advanced>true</advanced>
         </parameter>
         <parameter name="advancedGattServices" type="text" multiple="true" pattern="^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$">
             <label>Advanced GATT services</label>

@@ -21,8 +21,8 @@
 
         <parameter name="rssiFilterType" type="text" groupName="indoor-positioning-system">
             <label>Received signal strength indication (RSSI) filter</label>
-            <description>RSSI filter removes noise and spikes from RSSI in order to allow more precise estimation
-                of bluetooth device position relative to bluetooth adapters. The downside of applying RSSI filter is
+            <description>RSSI filter removes noise and spikes from RSSI in order to allow for better estimation
+                of bluetooth device position relative to bluetooth adapters. A downside of applying RSSI filter is
                 introducing some latency in changing RSSI value. For example, if a strong (slow) filter is applied,
                 then the filtered RSSI curve follows the real RSSI readings with a delay. If a weak (fast) filter is applied,
                 then the filtered RSSI curve becomes more responsive, but gains more spikes (noise).
@@ -73,8 +73,8 @@
 
         <parameter name="rssiFilterType" type="text" groupName="indoor-positioning-system">
             <label>Received signal strength indication (RSSI) filter</label>
-            <description>RSSI filter removes noise and spikes from RSSI in order to allow more precise estimation
-                of bluetooth device position relative to bluetooth adapters. The downside of applying RSSI filter is
+            <description>RSSI filter removes noise and spikes from RSSI in order to allow for better estimation
+                of bluetooth device position relative to bluetooth adapters. A downside of applying RSSI filter is
                 introducing some latency in changing RSSI value. For example, if a strong (slow) filter is applied,
                 then the filtered RSSI curve follows the real RSSI readings with a delay. If a weak (fast) filter is applied,
                 then the filtered RSSI curve becomes more responsive, but gains more spikes (noise).
@@ -103,7 +103,7 @@
 
         <parameter name="connectionStrategy" type="text" groupName="connection">
             <label>Connection strategy</label>
-            <description><![CDATA[Connection strategy that is to be used when the "connection control" is enabled. The following strategies are supported:
+            <description><![CDATA[Connection strategy to be used when device "connection control" is enabled. The following strategies are supported:
                     <ul>
                         <li>Nearest adapter: the nearest adapter is selected automatically.
                         <br/>&nbsp;&nbsp;&nbsp;&nbsp;Note: the selected adapter won't be changed while the device is connected even if the selected adapter is no longer the nearest. If disconnected, a new nearest adapter might be selected.</li>

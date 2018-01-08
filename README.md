@@ -1,79 +1,106 @@
-# bluetooth-binding
 
-WIP: Eclipse SmartHome Bluetooth Binding.
+# Bluetooth Binding
 
-This binding is still work in progress. The main goal is to merge [vkolotov](https://github.com/vkolotov)'s [OH BluetoothSmart binding](https://github.com/openhab/openhab2-addons/pull/2489) and [cdjackson](https://github.com/cdjackson)'s [BLE binding](https://github.com/eclipse/smarthome/pull/3633).
+The Bluetooth binding brings support for bluetooth devices into Eclipse SmartHome Framework. 
+The following main use cases are supported by the binding:
 
-## Objectives and KPIs
+* Presence detection. Bluetooth devices can be monitored whether they are in range of a Bluetooth adapter (or multiple Bluetooth adapters). 
+This feature makes it possible to detect if an object or a person enters or leaves a building or a room.
+* Indoor positioning. Location of a Bluetooth device can be identified based on estimated distance between the device and adapters. 
+This feature allows you to locate things (like your phone or keys) in your house or detect who exactly is in a room.  
+* Comprehensive support for Bluetooth Low Energy (Bluetooth Smart) devices. If a bluetooth device supports Bluetooth specification 4.0, 
+then the standard [GATT services and characteristics](https://www.bluetooth.com/specifications/gatt) can be automatically recognized and 
+corresponding thing channels be created for each GATT characteristic and its GATT fields. This feature allows you to connect 
+Bluetooth smart sensors and other Bluetooth devices.
+* Custom built (non-standard) BLE Bluetooth devices support. A custom built Bluetooth device can be automatically recognized like a standard one 
+by specifying a folder on the system disk with custom GATT service and characteristic definitions in XML files.
 
-### Objectives
+## Installation
 
-1. Merge the two PRs
-2. Productionize the result
+The Bluetooth binding can be installed via PaperUI and Eclipse MarketPlace. 
 
-### KPIs
+1. The Eclipse MarketPlace add-on should be installed first (it might be a bit confusing but the MarketPlace add-on is listed as "Eclipse IoT Market"):
+![Eclipse MarketPlace installation](eclipse-iot-install.png?raw=true "Eclipse MarketPlace installation")
+2. Once the MarketPlace add-on is installed it should be configured to display "betta" and "alpha" listings:
+![Eclipse MarketPlace configuration](eclipse-iot-configure.png?raw=true "Eclipse MarketPlace configuration")
+3. You may also want to enable the "Item Linking - Simple Mode" to automatically create thing items:
+![ESH Enabling Simple Linking](esh-simple-linking.png?raw=true "ESH Enabling Simple Linking")
+4. Depending on what Bluetooth adapter you have you will need to install one of the bluetooth transport extensions
+(or all of them if you have both types of bluetooth adapters). See [the compatibility matrix](#bluetooth-adapters-compatibility-matrix) below.
+![Eclipse MarketPlace Bluetooth Transport installation](eclipse-iot-bluetooth-transport.png?raw=true "Eclipse MarketPlace Bluetooth Transport installation")
+Note: There are some certain prerequisites that must be met for the generic adapter type (TinyB Bluetooth Transport) to work properly. 
+Please follow [these steps](https://github.com/sputnikdev/bluetooth-manager-tinyb#prerequisites) to find out if you need to do anything special.
+5. Finally install the Bluetooth Binding:
+![ESH Bluetooth Binding installation](eclipse-iot-bluetooth-binding.png?raw=true "ESH Bluetooth Binding installation")
 
-1. Flexibility in using different transports, e.g. serial port, DBus or any other (like tinyb).
-2. Extensibility in adding new supported devices (new OH addons), e.g. different sensors and other hardware.
-3. Robustness. Due to the nature of the Bluetooth protocol, we will have to make our bindings stable enough so that people could use it. This is the biggest challenge for this project.
-4. Comprehensive support for Bluetooth GATT specifications. This is a powerful feature which would allow users:
-    - add any device which conforms GATT specification without developing any new binding
-    - add custom made devices by only specifying a path to custom defined GATT specification for a device
+## Supported Things and Discovery
 
-## Progress
-1. ~~Extracting the Bluetooth binding from ESH project~~
-2. ~~Splitting BluetoothSmart binding into three bundles: bluetooth bundle and two transport bundles (tinyb and bluegiga)~~
-3. ~~Making adapter things to be bridges~~
-4. ~~Packing tinyb library into the tinyb transport bundle~~
-5. ~~Automatic native libraries management (no more hassle with native lib installation)~~
-6. ~~Implementing/merging BlueGiga transport/bundle.~~
-8. ~~GATT support. Automatic discovery of GATT services and characteristics. Creating ESH items for discovered characteristics. Read/write/notification support~~  
-9. ~~Presence detection (beacon mode).~~
-10. Indoor positioning (shared mode for adapters and devices). - 80% done
-11. Stabilizing
+### Bluetooth Adapter 
+There is only one "thing" that represents all adapters (Generic and BlueGiga) in the Binding.
+* Generic adapters should appear in the discovery inbox without making any configuration changes:
+![ESH Bluetooth Binding adaptes discivery](binding-tinyb-adapters-discovery.png?raw=true "ESH Bluetooth Binding adapters discovery") 
+* BlueGiga adapters will appear after configuring serial ports regular expression on the binding configuration page:
+![ESH Bluegiga adapters configure](binding-bluegiga-adapter-configure.png?raw=true "ESH Bluegiga adapters configure")
+WARNING!: It is very important not to make the regular expression too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. 
+If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidentally matched by the regular expression. USE THIS FEATURE AT YOUR OWN RISK.<br/>
+Regular expression examples:<br/>
+    - Defining some specific serial ports (preferable option): (/dev/ttyACM1)|(/dev/ttyACM2)
+    - Matching all serial ports on Linux: ((/dev/ttyACM)[0-9]{1,3})
+    - Matching all serial ports on OSX: (/dev/tty.(usbmodem).*)
+    - Matching all serial ports on Windows: ((COM)[0-9]{1,3})
+    - Matching all serial ports with some exclusions: (?!/dev/ttyACM0|/dev/ttyACM5)((/dev/ttyACM)[0-9]{1,3})
+    - Default regular expression is to match nothing: (?!)
+### Generic Bluetooth device
+This thing is intended to be used for older versions of Bluetooth devices which do not support BLE technology. 
 
-## Implementation details
+Most of the mobile phones are recognised as generic bluetooth devices:
+![ESH Bluetooth generic device discovery](binding-generic-device-discovery.png?raw=true "ESH Bluetooth generic device discovery")
+ 
+Only Presence detection and Indoor positioning features are available for this type of Bluetooth devices:
+![ESH Bluetooth generic device](binding-generic-device.png?raw=true "ESH Bluetooth generic device")
 
-### 1. Bluetooth URL
-![bluetooth url](https://user-images.githubusercontent.com/1161883/28913226-6259477e-788b-11e7-8765-6e58667a4a6c.png)
+### BLE enabled Bluetooth device
+This thing is used for newer versions of Bluetooth devices which support BLE technology. All binding features are supported by this thing. 
 
-[This is](https://github.com/sputnikdev/bluetooth-utils/blob/master/src/main/java/org/sputnikdev/bluetooth/URL.java) a useful component which allows us to identify any BT resource. It is similar to @cdjackson 
- [BluetoothAddress](https://github.com/cdjackson/smarthome/blob/ble_bundle/extensions/binding/org.eclipse.smarthome.binding.ble/src/main/java/org/eclipse/smarthome/binding/ble/BluetoothAddress.java), but it also supports locating BT adapters, services, characteristics and GATT fields. Even if multiple adapters are used, the URL can precisely identify resource of a BT device. That class is reasonably documented, so take a look at the comments in the file for more info.
+## Presence detection
 
-The Bluetooth URL can help to address Flexibility and Extensibility KPIs.
 
-### 2. Transport abstraction layer
-![transport abstraction layer](https://user-images.githubusercontent.com/1161883/28913669-f6be0d7c-788c-11e7-8b01-cdade0abb279.png)
 
-This is an API which is supposed to provide an abstraction layer between hardware and OpenHab. The API provides common interfaces for BT adapter, device, GATT service, GATT characteristic. It also supports plugging in different implementations for different transport types, such us serial port transport or BDus transport. In order to do so, a new transport layer must implement a limited number (actually only 4 interfaces, an example [here](https://github.com/sputnikdev/bluetooth-manager/tree/master/src/main/java/org/sputnikdev/bluetooth/manager/impl/tinyb)) of interfaces.
+## Indoor positioning
 
-This abstraction layer can help to address Flexibility and partially Robustness.
+## Bluetooth Smart (BLE) devices
 
-As a first step, I would leave TinyB transport as a main transport for linux based set-ups, however I agree that this should be converted to be using native DBus adapter. I can even suggest a good candidate for this work - [hypfvieh](https://github.com/hypfvieh/bluez-dbus). I had a chat with David a couple of months ago, he might be interested in this.
+## Bluetooth adapters compatibility matrix
 
-### 3. Bluetooth Manager
-![bluetooth manager](https://user-images.githubusercontent.com/1161883/28918587-f23f2fe0-789d-11e7-8d72-b5ca56ab215b.png)
+There are two types of adapters that are supported by the binding. Each of them has pros and cons. You may find that 
+not all of them will work for you:
+* Generic adapter (Supported by the TinyB Transport SmartHome extension). This a type of bluetooth adapters that you can buy from your local computer store. 
+These are the most common adapters, most likely you have one already or it is embedded into your PC/laptop (or Raspberry PI). 
+However, there is a major drawback - it works only in Linux based environments, to be more precise, it requires Bluez software installed in your OS. 
+* BlueGiga serial adapter (Supported by the BlueGiga Transport SmartHome extension). This a special type of bluetooth adapters that is quite rare. It is not easy to find it in a local computer store, 
+but still possible to buy it over the Internet. One of the most common is [Bluegiga BLED112](https://www.silabs.com/products/wireless/bluetooth/bluetooth-low-energy-modules/bled112-bluetooth-smart-dongle).
+The main criteria in selecting a BlueGiga adapter is that it must support [BGAPI](https://www.silabs.com/community/wireless/bluetooth/knowledge-base.entry.html/2015/08/06/_reference_bgapib-Alq6) (check this before you buy an adapter).
 
-It is a set of APIs and processes which are responsible for robustness of the system. The central part of it is "Governors" (examples and more info [BluetoothGovernor](https://github.com/sputnikdev/bluetooth-manager/blob/master/src/main/java/org/sputnikdev/bluetooth/manager/BluetoothGovernor.java),  [AdapterGovernor](https://github.com/sputnikdev/bluetooth-manager/blob/master/src/main/java/org/sputnikdev/bluetooth/manager/AdapterGovernor.java), [DeviceGovernor](https://github.com/sputnikdev/bluetooth-manager/blob/master/src/main/java/org/sputnikdev/bluetooth/manager/DeviceGovernor.java) and [BluetoothManager](https://github.com/sputnikdev/bluetooth-manager/blob/master/src/main/java/org/sputnikdev/bluetooth/manager/BluetoothManager.java)). These are components which define lifecycle of BT objects and contain logic for error recovery. They are similar to the transport APIs, but yet different because they are active components, i.e. they implement some logic for each of BT objects (adapter, device, characteristic) that make the system more robust and enable the system to recover from unexpected situations such as disconnections and power outages.
+The following table shows some major features supported by each adapter type: 
 
-Apart from making the system more stable, the Governors are designed in a such way that they can be used externally, in other words it is another abstraction layer which hides some specifics/difficulties of the BT protocol behind user-friendly APIs.
+|                                     |    Generic    |   BlueGiga    | 
+|     :---                            |     :---:     |     :---:     |
+| Windows                             |       -       |       Y       |
+| Linux                               |       Y       |       Y       |
+| Mac                                 |       -       |       Y       |
+| X86 32bit                           |       Y       |       Y       |
+| X86 64bit                           |       Y       |       Y       |
+| ARM v6 (Raspberry PI)               |       Y       |       Y       |
+| Adapters autodiscovery              |       Y       |       Y       |
+| Adapter aliases                     |       Y       |       -       |
+| Device aliases                      |       Y       |       -       |
+| BLE devices support                 |       Y       |       Y       |
+| BR/EDR devices support (legacy BT)  |       Y       |       -       |
 
-Obviously the Bluetooth Manager is supposed to help us with Robustness and Extensibility KPIs.
+## Troubleshooting
 
-### 4. GATT Parser
-
-It is a component which can translate BT raw data into user-friendly format. In short, it reads GATT specifications (xml files) and converts raw data into map of: Field name -> value. Works both ways, e.g. raw data -> fields (read operation) and fields -> raw data (write operation). All complex logic related to bit operations, type conversions, validations etc are hidden in this component. More info [here](https://github.com/sputnikdev/bluetooth-gatt-parser).
-
-This component will allow us to create "generic" OH handlers which can work with any devices that conform GATT specifications OR users can supply their own implementations for GATT specs in XML files to add their own custom made devices.
-
-## Architecture design
-
-![openhab bluetooth](https://user-images.githubusercontent.com/1161883/28918674-63a82d6c-789e-11e7-86d7-a3e32e44921d.png)
-
-As you can see that diagram reflects the diagram pointed out [earlier](https://github.com/eclipse/smarthome/pull/3531#issuecomment-305831722). It is quite similar. There are bundles to add transport, bluetooth binding APIs and some specific binding for a particular device (YeeLightBlue). 
-
-The only significant difference is the way how transport is plugged in to OH. In contrast to @cdjackson implementation, the transport implementations are plugged in to Bluetooth Manager via well defined transport APIs.
-
-Another difference is that all OH handlers are supposed to work with the "Governors API" which provides/separates handler specific logic from dealing with BT protocol nasties.
-
-Please note that on the diagram green colour means that it is already implemented (well to certain extend that it can be thought that it is implemented), blue and red colours - something we need to develop/merge. In my mind, the blue components can be implemented/merged by @cdjackson and the red components by me. Of course we all need to put some effort in polishing the green components, however I promise to take the main responsibility in supporting the green stuff.
+* BlueGiga adapters are not getting discovered:
+  - Make sure that Eclipse SmartHome (opehab system user) has sufficient permissions to access adapters (serial ports) in your OS (e.g. `sudo adduser openhab dialout`)
+  - Double check if the regular expression to look up serial ports is valid and correctly selects BlueGiga serial ports (and ony BlueGiga serial ports).
+* Generic adapters (TinyB transport) are not getting discovered:
+  - Make sure that Bluez software is of a recent version (v5.43+). Check [here]((https://github.com/sputnikdev/bluetooth-manager-tinyb#prerequisites)).
