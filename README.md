@@ -72,15 +72,23 @@ Only Presence detection and Indoor positioning features are available for this t
 ![ESH Bluetooth generic device](binding-generic-device.png?raw=true "ESH Bluetooth generic device")
 
 ### BLE enabled Bluetooth device
-This thing is used for newer versions of bluetooth devices which support BLE technology. All binding features are supported by this thing. 
+This thing is used for newer versions of bluetooth devices which support BLE technology. 
+![ESH Bluetooth ble device discovery](binding-ble-device-discovery.png?raw=true "ESH Bluetooth ble device discovery")
+
+All the binding features are fully supported by this thing. For example, a standard bluetooth heart rate monitor will look like that:
+![ESH Bluetooth ble device](binding-ble-device.png?raw=true "ESH Bluetooth ble device")
+
+From the picture above you can see a list of channels that are automatically created for all discovered GATT services and characteristics of the heart rate monitor device.
+
 
 ## Presence detection
-
-
+//TODO configuration and usage info 
 
 ## Indoor positioning
+//TODO configuration and usage info
 
 ## Bluetooth Smart (BLE) devices
+//TODO configuration and usage info
 
 ## Bluetooth adapters compatibility matrix
 
