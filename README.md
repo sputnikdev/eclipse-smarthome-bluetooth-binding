@@ -28,7 +28,7 @@ The Bluetooth binding can be installed via PaperUI and Eclipse MarketPlace.
 4. Depending on what bluetooth adapter you have you will need to install one of the bluetooth transport extensions
 (or all of them if you have both types of bluetooth adapters). See [the compatibility matrix](#bluetooth-adapters-compatibility-matrix) below.
 ![Eclipse MarketPlace Bluetooth Transport installation](eclipse-iot-bluetooth-transport.png?raw=true "Eclipse MarketPlace Bluetooth Transport installation")
-Note: There are some certain prerequisites that must be met for the generic adapter type (TinyB Bluetooth Transport) to work properly. 
+**IMPORTANT:** There are some certain prerequisites that must be met for the generic adapter type (TinyB Bluetooth Transport) to work properly. 
 Please follow [these steps](https://github.com/sputnikdev/bluetooth-manager-tinyb#prerequisites) to find out if you need to do anything special.
 5. Finally install the Bluetooth Binding:
 ![ESH Bluetooth Binding installation](eclipse-iot-bluetooth-binding.png?raw=true "ESH Bluetooth Binding installation")
@@ -41,8 +41,8 @@ There is only one "thing" that represents all adapters (Generic and BlueGiga) in
 ![ESH Bluetooth Binding adaptes discivery](binding-tinyb-adapters-discovery.png?raw=true "ESH Bluetooth Binding adapters discovery") 
 * BlueGiga adapters will appear after configuring serial port regular expression on the binding configuration page:
 ![ESH Bluegiga adapters configure](binding-bluegiga-adapter-configure.png?raw=true "ESH Bluegiga adapters configure")
-**WARNING!:** It is very important not to make the regular expression too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. 
-If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidentally matched by the regular expression. USE THIS FEATURE AT YOUR OWN RISK.
+**WARNING!:** It is very important to make the regular expression **NOT** too wide so that ONLY Bluegiga adapters/ serial ports are matched by the regular expression. 
+If the regular expression is too broad, this can lead to hardware malfunction/damage of other devices that are accidentally matched by the regular expression. **USE THIS FEATURE AT YOUR OWN RISK**.
 Regular expression examples:
     - Defining some specific serial ports (preferable option): (/dev/ttyACM1)|(/dev/ttyACM2)
     - Matching all serial ports on Linux: ((/dev/ttyACM)[0-9]{1,3})
@@ -56,7 +56,7 @@ Discovered adapters can be added as new things from the PaperUI inbox. It is pos
 
 For the **Indoor Positioning** feature to work properly, it is advisable that the adapters are physically separated from each other as much as possible. 
 For example, you may want to install bluetooth adapters in each room of your house so that the Binding will be able to sense bluetooth devices in each room.
-Defining a location for each adapter is essential:
+Therefore defining a location for each adapter is essential:
 ![ESH Bluetooth adapter location](binding-adapter-location.png?raw=true "ESH Bluetooth adapter location")
 
 The location of the nearest adapter will be reported by bluetooth device thing:
