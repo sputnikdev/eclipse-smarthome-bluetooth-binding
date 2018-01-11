@@ -119,8 +119,10 @@ The following table shows some major features supported by each adapter type:
 
 ## Troubleshooting
 
-* BlueGiga adapters are not getting discovered:
-  - Make sure that Eclipse SmartHome (opehab system user) has sufficient permissions to access adapters (serial ports) in your OS (e.g. `sudo adduser openhab dialout`)
-  - Double check if the regular expression to look up serial ports is valid and correctly selects BlueGiga serial ports (and ony BlueGiga serial ports).
-* Generic adapters (TinyB transport) are not getting discovered:
-  - Make sure that Bluez software is of a recent version (v5.43+). Check [here]((https://github.com/sputnikdev/bluetooth-manager-tinyb#prerequisites)).
+* [BlueGiga adapters are not getting discovered](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/6)
+* [Generic adapters (TinyB transport) are not getting discovered](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/7)
+* [Battery service does not get resolved](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/8)
+* [I've added an adapter, but I can't see any bluetooth devices](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/11)
+* Nothing happens and I have errors in the log file:<br/>
+    - [GDBus.Error:org.freedesktop.DBus.Error.AccessDenied](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/9)
+    - [org.sputnikdev.bluetooth.manager.NotReadyException: Could not power adapter](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/10) 
