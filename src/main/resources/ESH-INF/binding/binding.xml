@@ -72,6 +72,13 @@
                     <li>Default regular expression is to match nothing: (?!)</li>
                 </ul>
             ]]></description>
+            <options>
+                <option value="((/dev/ttyACM)[0-9]{1,3})">All Linux ports</option>
+                <option value="(/dev/tty.(usbmodem).*)">All OSX ports</option>
+                <option value="((COM)[0-9]{1,3})">All Windows</option>
+                <option value="((COM)[0-9]{1,3})">Nothing</option>
+            </options>
+            <limitToOptions>false</limitToOptions>
             <default>(?!)</default>
             <verify>true</verify>
         </parameter>
