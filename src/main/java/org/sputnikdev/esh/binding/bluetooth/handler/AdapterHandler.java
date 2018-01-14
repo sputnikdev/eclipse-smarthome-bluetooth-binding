@@ -67,6 +67,8 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         adapterGovernor.addGovernorListener(this);
         adapterGovernor.addAdapterListener(this);
 
+        adapterGovernor.setDiscoveringControl(true);
+
         lastUpdatedChanged(new Date());
         updateDevice(getConfig());
 
@@ -82,7 +84,6 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         AdapterGovernor adapterGovernor = getGovernor();
         adapterGovernor.removeAdapterListener(this);
         adapterGovernor.removeGovernorListener(this);
-        adapterGovernor.setDiscoveringControl(true);
         logger.info("Adapter handler has been disposed");
     }
 
