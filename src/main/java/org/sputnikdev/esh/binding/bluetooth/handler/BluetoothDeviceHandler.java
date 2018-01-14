@@ -116,11 +116,12 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         ThingBuilder builder = editThing();
 
         logger.info("Building channels for services: {}", gattServices.size());
-        Map<MultiChannelHandler, List<Channel>> channels = new BluetoothChannelBuilder(this)
+        Map<ChannelHandler, List<Channel>> channels = new BluetoothChannelBuilder(this)
                 .withAdvancedServices(getBindingConfig().getAdvancedGattServices())
+                .withUnknownAttributes(getBindingConfig().isDiscoverUnknownAttributes())
                 .buildChannels(gattServices);
 
-        for (Map.Entry<MultiChannelHandler, List<Channel>> entry : channels.entrySet()) {
+        for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
             ChannelHandler channelHandler = entry.getKey();
             addChannelHandler(channelHandler);
             updateChannels(builder, entry.getValue());
@@ -129,7 +130,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         logger.info("Updating the thing with new channels");
         updateThing(builder.build());
 
-        for (MultiChannelHandler channelHandler : channels.keySet()) {
+        for (ChannelHandler channelHandler : channels.keySet()) {
             try {
                 channelHandler.init();
             } catch (Exception ex) {

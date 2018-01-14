@@ -101,6 +101,16 @@
             <limitToOptions>false</limitToOptions>
             <advanced>true</advanced>
         </parameter>
+        <parameter name="discoverUnknownAttributes" type="boolean">
+            <label>Discover unknown GATT services and characteristics</label>
+            <description>When enabled, all unknown bluetooth device GATT services and characteristics are discovered and corresponding thing channels get created.
+                Created channels for the such characteristics will contain RAW unprocessed data that could possibly be consumed by a custom transformation in order to extract some meaningful bluetooth device values/state.
+                Please note, this is an experimental feature that require some deep knowledge in the BLE technology, therefore this feature is used mainly for debugging purposes (adding device support through creating custom GATT specifications,
+                see the "GATT services and characteristics extension folder" binding setting).</description>
+            <required>false</required>
+            <advanced>true</advanced>
+            <default>false</default>
+        </parameter>
     </config-description>
 
 </binding:binding>

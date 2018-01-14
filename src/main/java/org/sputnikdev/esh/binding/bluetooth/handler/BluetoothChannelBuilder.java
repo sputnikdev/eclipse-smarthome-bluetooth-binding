@@ -18,6 +18,7 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ class BluetoothChannelBuilder {
 
     private final BluetoothHandler handler;
     private Set<String> advancedServices;
+    private boolean unknownAttributes;
 
     BluetoothChannelBuilder(BluetoothHandler handler) {
         this.handler = handler;
@@ -45,14 +47,21 @@ class BluetoothChannelBuilder {
         return this;
     }
 
-    protected Map<MultiChannelHandler, List<Channel>> buildChannels(List<GattService> services) {
+    BluetoothChannelBuilder withUnknownAttributes(boolean unknownAttributes) {
+        this.unknownAttributes = unknownAttributes;
+        return this;
+    }
+
+    protected Map<ChannelHandler, List<Channel>> buildChannels(List<GattService> services) {
         BluetoothGattParser gattParser = handler.getGattParser();
-        Map<MultiChannelHandler, List<Channel>> result = new HashMap<>();
+        Map<ChannelHandler, List<Channel>> result = new HashMap<>();
         for (GattService service : services) {
             for (GattCharacteristic characteristic : service.getCharacteristics()) {
                 logger.info("Handling a new characteristic: {}", characteristic.getURL());
 
-                if (!gattParser.isKnownCharacteristic(characteristic.getURL().getCharacteristicUUID())) {
+                boolean isKnownCharacteristic = gattParser.isKnownCharacteristic(
+                        characteristic.getURL().getCharacteristicUUID());
+                if (!unknownAttributes && !isKnownCharacteristic) {
                     logger.info("Skipping unknown characteristic: {} ", characteristic.getURL());
                     continue;
                 }
@@ -61,18 +70,22 @@ class BluetoothChannelBuilder {
                 boolean readAccess = BluetoothUtils.hasReadAccess(flags)
                         || BluetoothUtils.hasNotificationAccess(flags);
                 boolean writeAccess = BluetoothUtils.hasWriteAccess(flags);
+
                 if (!readAccess && !writeAccess) {
-                    logger.info("The characteristic {} is not supported, flags: {} ",
-                            characteristic.getURL(), characteristic.getFlags());
+                    logger.info("The characteristic {} is not supported as it cannot be read, subscribed for "
+                            + "notification or written; flags: {} ", characteristic.getURL(),
+                            characteristic.getFlags());
                     continue;
                 }
-                if (readAccess && gattParser.isValidForRead(characteristic.getURL().getCharacteristicUUID())
-                        || writeAccess) {
+
+                if (isKnownCharacteristic) {
                     logger.info("Creating channels for characteristic: {}", characteristic.getURL());
                     result.put(new MultiChannelHandler(handler, characteristic.getURL(), flags),
                             buildChannels(handler.getThing(), service, characteristic));
                 } else {
-                    logger.info("Skipping invalid characteristic {}.", characteristic.getURL());
+                    result.put(new BinaryChannelHandler(handler, characteristic.getURL(), flags),
+                            Collections.singletonList(
+                                    buildUnknownChannel(handler.getThing(), service, characteristic)));
                 }
             }
         }
@@ -86,6 +99,19 @@ class BluetoothChannelBuilder {
             channels.add(channel);
         }
         return channels;
+    }
+
+    private Channel buildUnknownChannel(Thing thing, GattService service, GattCharacteristic characteristic) {
+        URL channelURL = characteristic.getURL();
+        ChannelUID channelUID = new ChannelUID(thing.getUID(), BluetoothUtils.getChannelUID(channelURL));
+
+        String channelType = getChannelType(service, characteristic, null);
+
+        ChannelTypeUID channelTypeUID = new ChannelTypeUID(BluetoothBindingConstants.BINDING_ID, channelType);
+        return ChannelBuilder.create(channelUID, "String")
+                .withType(channelTypeUID)
+                .withLabel(characteristic.getURL().getCharacteristicUUID())
+                .build();
     }
 
     private Channel buildChannel(Thing thing, GattService service, GattCharacteristic characteristic, Field field) {

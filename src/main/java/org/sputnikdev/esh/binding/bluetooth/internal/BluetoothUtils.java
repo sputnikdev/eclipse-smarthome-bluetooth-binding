@@ -95,15 +95,15 @@ public class BluetoothUtils {
         return CombinedGovernor.COMBINED_ADDRESS.equals(url.getAdapterAddress());
     }
 
-    private static String getUID(String address) {
-        return address.replaceAll("/", "").replaceAll(":", "");
-    }
-
-    private static String getShortUUID(String longUUID) {
+    public static String getShortUUID(String longUUID) {
         if (longUUID.length() < 8) {
             return longUUID;
         }
         return Long.toHexString(Long.valueOf(longUUID.substring(0, 8), 16)).toUpperCase();
+    }
+
+    private static String getUID(String address) {
+        return address.replaceAll("/", "").replaceAll(":", "");
     }
 
     private static String getAddressFromUID(String uid) {

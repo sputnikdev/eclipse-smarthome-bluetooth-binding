@@ -17,6 +17,7 @@ public class BluetoothBindingConfig {
     private boolean combinedAdaptersEnabled;
     private boolean combinedDevicesEnabled = true;
     private List<String> advancedGattServices = new ArrayList<>();
+    private boolean discoverUnknownAttributes;
 
     public BluetoothBindingConfig() {
         advancedGattServices.addAll(Arrays.asList("00001800-0000-1000-8000-00805f9b34fb",
@@ -85,5 +86,13 @@ public class BluetoothBindingConfig {
 
     public void setAdvancedGattServices(List<String> advancedGattServices) {
         this.advancedGattServices = Collections.unmodifiableList(advancedGattServices);
+    }
+
+    public boolean isDiscoverUnknownAttributes() {
+        return discoverUnknownAttributes;
+    }
+
+    public void setDiscoverUnknownAttributes(boolean discoverUnknownAttributes) {
+        this.discoverUnknownAttributes = discoverUnknownAttributes;
     }
 }

@@ -14,7 +14,7 @@ import org.sputnikdev.bluetooth.manager.NotReadyException;
 /**
  * @author Vlad Kolotov
  */
-abstract class SingleChannelHandler<V, S extends Command> implements ChannelHandler {
+abstract class SingleChannelHandler<V, S extends State> implements ChannelHandler {
 
     private Logger logger = LoggerFactory.getLogger(SingleChannelHandler.class);
 
