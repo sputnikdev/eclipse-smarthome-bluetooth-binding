@@ -141,4 +141,5 @@ The following table shows some major features supported by each adapter type:
     - [Dehyaton Bluetooth tracking tag (beacon)](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/21)
     - [HRAEFN Bluetooth tracking tag (beacon)](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/22)
 7. [Improve indoor positioning performance and accuracy](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/23).
+8. **The ultimate goal:** provide a comprehensive and integrated environment for building custom bluetooth devices (sensors) based on the Bluetooth binding, cheap $2 bluetooth board (nrf51822) and [Mbed OS](https://www.mbed.com/en/platform/mbed-os/). This should bring an easy way to build your own wireless sensors for a very affordable price.  
 
