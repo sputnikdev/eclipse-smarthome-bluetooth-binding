@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.Set;
 
 /**
+ * Binary data channel handler.
+ *
  * @author Vlad Kolotov
  */
 class BinaryChannelHandler implements ChannelHandler, ValueListener, GovernorListener {
@@ -73,12 +75,17 @@ class BinaryChannelHandler implements ChannelHandler, ValueListener, GovernorLis
 
     @Override
     public void changed(byte[] value) {
+        String[] hexFormatted = new String[value.length];
+        int index = 0;
+        for (byte b : value) {
+            hexFormatted[index++] = String.format("%02x", b);
+        }
         handler.updateState(BluetoothUtils.getChannelUID(url),
-                value != null ? new StringType(Arrays.toString(value)) : UnDefType.UNDEF);
+                value != null ? new StringType(Arrays.toString(hexFormatted)) : UnDefType.UNDEF);
     }
 
     private CharacteristicGovernor getGovernor() {
-        return handler.getBluetoothManager().getCharacteristicGovernor(url);
+        return handler.getBluetoothContext().getManager().getCharacteristicGovernor(url);
     }
 
     @Override
@@ -101,7 +108,7 @@ class BinaryChannelHandler implements ChannelHandler, ValueListener, GovernorLis
         String[] tokens = data.split(",");
         byte[] bytes = new byte[tokens.length];
         for (int i = 0; i < tokens.length; i++) {
-            bytes[i] = Byte.valueOf(tokens[i]);
+            bytes[i] = Byte.valueOf(tokens[i], 16);
         }
         return bytes;
     }

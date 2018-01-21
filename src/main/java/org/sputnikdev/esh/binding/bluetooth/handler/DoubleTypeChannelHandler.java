@@ -5,9 +5,11 @@ import org.eclipse.smarthome.core.library.types.DecimalType;
 import java.math.BigDecimal;
 
 /**
+ * Double type channel handler.
+ *
  * @author Vlad Kolotov
  */
-class DoubleTypeChannelHandler extends SingleChannelHandler<Double, DecimalType> {
+abstract class DoubleTypeChannelHandler extends SingleChannelHandler<Double, DecimalType> {
 
     DoubleTypeChannelHandler(BluetoothHandler handler, String channelID, boolean persistent) {
         super(handler, channelID, persistent);
@@ -17,15 +19,15 @@ class DoubleTypeChannelHandler extends SingleChannelHandler<Double, DecimalType>
         super(handler, channelID);
     }
 
-    @Override Double convert(DecimalType value) {
+    @Override protected  Double convert(DecimalType value) {
         return value != null ? value.doubleValue() : null;
     }
 
-    @Override DecimalType convert(Double value) {
+    @Override protected DecimalType convert(Double value) {
         return value != null ? new DecimalType(value) : null;
     }
 
-    @Override Double load(Object stored) {
+    @Override protected Double load(Object stored) {
         return stored instanceof BigDecimal ? ((BigDecimal) stored).doubleValue() : null;
     }
 }

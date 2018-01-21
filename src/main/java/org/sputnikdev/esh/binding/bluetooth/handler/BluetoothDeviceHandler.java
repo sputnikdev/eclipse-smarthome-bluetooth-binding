@@ -4,7 +4,6 @@ import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,7 @@ import org.sputnikdev.bluetooth.manager.ConnectionStrategy;
 import org.sputnikdev.bluetooth.manager.DeviceGovernor;
 import org.sputnikdev.bluetooth.manager.GattService;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
-import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
 import java.util.Arrays;
@@ -26,7 +25,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- *
+ * A bluetooth handler which represents BLE bluetooth devices (bluetooth v4.0+).
  * 
  * @author Vlad Kolotov - Initial contribution
  */
@@ -34,7 +33,6 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         implements BluetoothSmartDeviceListener {
 
     private Logger logger = LoggerFactory.getLogger(BluetoothDeviceHandler.class);
-    private boolean initialConnectionControl;
     private ScheduledFuture<?> syncTask;
 
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
@@ -53,7 +51,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
             getGovernor().setConnectionControl(value);
         }
         @Override Boolean getDefaultValue() {
-            return initialConnectionControl;
+            return getBluetoothContext().getConfig().isInitialConnectionControl();
         }
     };
 
@@ -73,8 +71,8 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     };
 
 
-    public BluetoothDeviceHandler(BluetoothHandlerFactory factory, Thing thing) {
-        super(factory, thing);
+    public BluetoothDeviceHandler(Thing thing, BluetoothContext bluetoothContext) {
+        super(thing, bluetoothContext);
         addChannelHandlers(Arrays.asList(connectedHandler, connectionControlHandler, connectedAdapterHandler));
     }
 
@@ -116,10 +114,8 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         ThingBuilder builder = editThing();
 
         logger.info("Building channels for services: {}", gattServices.size());
-        Map<ChannelHandler, List<Channel>> channels = new BluetoothChannelBuilder(this)
-                .withAdvancedServices(getBindingConfig().getAdvancedGattServices())
-                .withUnknownAttributes(getBindingConfig().isDiscoverUnknownAttributes())
-                .buildChannels(gattServices);
+        Map<ChannelHandler, List<Channel>> channels =
+                new BluetoothChannelBuilder(this).buildChannels(gattServices);
 
         for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
             ChannelHandler channelHandler = entry.getKey();
@@ -156,16 +152,9 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
             CombinedDeviceGovernor combinedDeviceGovernor = (CombinedDeviceGovernor) deviceGovernor;
             combinedDeviceGovernor.setConnectionStrategy(ConnectionStrategy.valueOf(config.getConnectionStrategy()));
             combinedDeviceGovernor.setPreferredAdapter(
-                    config.getPreferredAdapter() != null ? new URL(config.getPreferredAdapter(), null) : null);
+                    config.getPreferredBluetoothAdapter() != null
+                            ? new URL(config.getPreferredBluetoothAdapter(), null) : null);
         }
-    }
-
-    public boolean isInitialConnectionControl() {
-        return initialConnectionControl;
-    }
-
-    public void setInitialConnectionControl(boolean initialConnectionControl) {
-        this.initialConnectionControl = initialConnectionControl;
     }
 
     private void updateChannels(ThingBuilder builder, Collection<Channel> channels) {

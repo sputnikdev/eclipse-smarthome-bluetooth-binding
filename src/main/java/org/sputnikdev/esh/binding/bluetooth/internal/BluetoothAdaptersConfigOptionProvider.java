@@ -15,17 +15,34 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+/**
+ * {@link ConfigOptionProvider} that provides a list of available bluetooth adapters.
+ * The following param names are used to return adapters for:
+ * <ul>
+ *     <li>preferredBluetoothAdapter</li>
+ *     <li>bluetoothAdapter</li>
+ *     <li>bluetooth-adapter</li>
+ * </ul>
+ *
+ * @author Vlad Kolotov
+ */
 @Component(immediate = true, service = ConfigOptionProvider.class)
-public class AdaptersConfigOptionProvider implements ConfigOptionProvider {
+public class BluetoothAdaptersConfigOptionProvider implements ConfigOptionProvider {
+
+    private static final Set<String> PARAM_NAMES =
+            Stream.of("preferredBluetoothAdapter", "bluetoothAdapter",  "bluetooth-adapter")
+                    .collect(Collectors.toSet());
 
     private BluetoothManager bluetoothManager;
     private ThingRegistry thingRegistry;
 
     @Override
     public Collection<ParameterOption> getParameterOptions(URI uri, String param, Locale locale) {
-        if ("preferredAdapter".equals(param) && bluetoothManager != null) {
+        if (PARAM_NAMES.contains(param) && bluetoothManager != null) {
             return bluetoothManager.getDiscoveredAdapters().stream()
                     .filter(adapter -> !adapter.isCombined())
                     .map(this::convert)

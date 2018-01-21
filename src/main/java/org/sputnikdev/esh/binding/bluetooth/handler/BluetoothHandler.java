@@ -1,10 +1,8 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
 import org.eclipse.smarthome.config.core.Configuration;
-import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
@@ -15,9 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.manager.BluetoothGovernor;
-import org.sputnikdev.bluetooth.manager.BluetoothManager;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothBindingConfig;
-import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.ArrayList;
@@ -25,19 +22,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * A root thing handler for all bluetooth handlers. Defines overall structure and provides some useful methods
+ * for its successors.
+ *
  * @author Vlad Kolotov
  */
 class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     private Logger logger = LoggerFactory.getLogger(BluetoothHandler.class);
 
-    private final BluetoothHandlerFactory factory;
+    private final BluetoothContext bluetoothContext;
     private final URL url;
     private final List<ChannelHandler> channelHandlers = new ArrayList<>();
 
-    BluetoothHandler(BluetoothHandlerFactory factory, Thing thing) {
+    BluetoothHandler(Thing thing, BluetoothContext bluetoothContext) {
         super(thing);
-        this.factory = factory;
+        this.bluetoothContext = bluetoothContext;
         url = BluetoothUtils.getURL(thing);
     }
 
@@ -60,8 +60,8 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         super.dispose();
         disposeChannelHandlers();
         logger.info("Disposing bluetooth object: {}", url);
-        getBluetoothManager().disposeDescendantGovernors(url);
-        getBluetoothManager().disposeGovernor(url);
+        bluetoothContext.getManager().disposeDescendantGovernors(url);
+        bluetoothContext.getManager().disposeGovernor(url);
         logger.info("Abstract Bluetooth Handler has been disposed");
     }
 
@@ -114,48 +114,41 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         // default implementation
     }
 
-    protected BluetoothManager getBluetoothManager() {
-        return factory.getBluetoothManager();
-    }
-
-    protected BluetoothGattParser getGattParser() {
-        return factory.getGattParser();
-    }
-
-    protected ItemRegistry getItemRegistry() {
-        return factory.getItemRegistry();
-    }
-
-    protected ThingRegistry getThingRegistry() {
-        return factory.getThingRegistry();
-    }
-
-    protected BluetoothBindingConfig getBindingConfig() {
-        return factory.getBindingConfig();
+    protected BluetoothContext getBluetoothContext() {
+        return bluetoothContext;
     }
 
     protected List<ChannelHandler> getChannelHandlers() {
         return channelHandlers;
     }
 
-    void addChannelHandler(ChannelHandler channelHandler) {
+    protected void addChannelHandler(ChannelHandler channelHandler) {
         synchronized (channelHandlers) {
             channelHandlers.add(channelHandler);
         }
     }
 
-    void addChannelHandlers(List<ChannelHandler> handlers) {
+    protected void addChannelHandlers(List<ChannelHandler> handlers) {
         synchronized (channelHandlers) {
             channelHandlers.addAll(handlers);
         }
     }
 
-    URL getURL() {
+    protected URL getURL() {
         return url;
     }
 
     protected T getGovernor() {
-        return (T) getBluetoothManager().getGovernor(getURL());
+        return (T) bluetoothContext.getManager().getGovernor(getURL());
+    }
+
+
+    protected BluetoothGattParser getParser() {
+        return bluetoothContext.getParser();
+    }
+
+    protected BluetoothBindingConfig getBindingConfig() {
+        return bluetoothContext.getConfig();
     }
 
     private void initChannelHandlers() {
@@ -168,6 +161,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         synchronized (channelHandlers) {
             channelHandlers.forEach(ChannelHandler::dispose);
         }
+        channelHandlers.clear();
     }
 
 }

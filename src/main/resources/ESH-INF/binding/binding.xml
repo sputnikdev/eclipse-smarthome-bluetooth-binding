@@ -28,15 +28,10 @@
     <author>Vlad Kolotov</author>
 
     <config-description>
-        <!--<parameter name="combinedAdaptersEnabled" type="boolean">-->
-            <!--<label>Combine adapters</label>-->
-            <!--<description>If selected all discovered adapters are combined into a single thing and therefore can be controlled as a single unit.</description>-->
-            <!--<required>true</required>-->
-            <!--<default>false</default>-->
-        <!--</parameter>-->
+        <!-- the following parameter is used only for debugging-->
         <!--<parameter name="combinedDevicesEnabled" type="boolean">-->
             <!--<label>Combine devices</label>-->
-            <!--<description>If selected all discovered devices that have the same adress (discovered through different adapters) are combined into a single thing and therefore can be controlled as a single unit.</description>-->
+            <!--<description>If selected all discovered devices that have the same address (discovered through different adapters) are combined into a single thing and therefore can be controlled as a single unit.</description>-->
             <!--<required>true</required>-->
             <!--<default>true</default>-->
         <!--</parameter>-->

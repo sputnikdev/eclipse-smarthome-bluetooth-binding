@@ -3,9 +3,11 @@ package org.sputnikdev.esh.binding.bluetooth.handler;
 import org.eclipse.smarthome.core.library.types.StringType;
 
 /**
+ * String type channel handler.
+ *
  * @author Vlad Kolotov
  */
-class StringTypeChannelHandler extends SingleChannelHandler<String, StringType> {
+abstract class StringTypeChannelHandler extends SingleChannelHandler<String, StringType> {
 
     StringTypeChannelHandler(BluetoothHandler handler, String channelID, boolean persistent) {
         super(handler, channelID, persistent);
@@ -15,18 +17,15 @@ class StringTypeChannelHandler extends SingleChannelHandler<String, StringType> 
         super(handler, channelID);
     }
 
-    @Override
-    String convert(StringType value) {
+    @Override protected String convert(StringType value) {
         return value != null ? value.toString() : null;
     }
 
-    @Override
-    StringType convert(String value) {
+    @Override protected StringType convert(String value) {
         return value != null ? new StringType(value) : null;
     }
 
-    @Override
-    String load(Object stored) {
+    @Override protected String load(Object stored) {
         return stored instanceof String ? (String) stored : null;
     }
 }

@@ -3,9 +3,11 @@ package org.sputnikdev.esh.binding.bluetooth.handler;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 
 /**
+ * Boolean type channel handler.
+ *
  * @author Vlad Kolotov
  */
-class BooleanTypeChannelHandler extends SingleChannelHandler<Boolean, OnOffType> {
+abstract class BooleanTypeChannelHandler extends SingleChannelHandler<Boolean, OnOffType> {
 
     BooleanTypeChannelHandler(BluetoothHandler handler, String channelID, boolean persistent) {
         super(handler, channelID, persistent);
@@ -15,16 +17,15 @@ class BooleanTypeChannelHandler extends SingleChannelHandler<Boolean, OnOffType>
         super(handler, channelID);
     }
 
-    @Override Boolean convert(OnOffType value) {
+    @Override protected Boolean convert(OnOffType value) {
         return value != null && value == OnOffType.ON;
     }
 
-    @Override OnOffType convert(Boolean value) {
+    @Override protected OnOffType convert(Boolean value) {
         return value != null && value ? OnOffType.ON : OnOffType.OFF;
     }
 
-    @Override
-    Boolean load(Object stored) {
+    @Override protected Boolean load(Object stored) {
         return stored instanceof Boolean ? (Boolean) stored : null;
     }
 }

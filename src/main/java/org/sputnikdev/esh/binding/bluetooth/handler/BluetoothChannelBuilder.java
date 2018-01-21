@@ -8,7 +8,6 @@ import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
-import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.gattparser.spec.Characteristic;
 import org.sputnikdev.bluetooth.gattparser.spec.Field;
 import org.sputnikdev.bluetooth.manager.GattCharacteristic;
@@ -23,10 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 /**
+ * A utility class for creating dynamic channels for discovered GATT characteristics.
+ *
  * @author Vlad Kolotov
  */
 class BluetoothChannelBuilder {
@@ -34,34 +34,20 @@ class BluetoothChannelBuilder {
     private Logger logger = LoggerFactory.getLogger(BluetoothChannelBuilder.class);
 
     private final BluetoothHandler handler;
-    private Set<String> advancedServices;
-    private boolean unknownAttributes;
 
-    BluetoothChannelBuilder(BluetoothHandler handler) {
+    protected BluetoothChannelBuilder(BluetoothHandler handler) {
         this.handler = handler;
     }
 
-    BluetoothChannelBuilder withAdvancedServices(List<String> services) {
-        advancedServices = services != null
-                ? services.stream().map(String::toLowerCase).collect(Collectors.toSet()) : null;
-        return this;
-    }
-
-    BluetoothChannelBuilder withUnknownAttributes(boolean unknownAttributes) {
-        this.unknownAttributes = unknownAttributes;
-        return this;
-    }
-
     protected Map<ChannelHandler, List<Channel>> buildChannels(List<GattService> services) {
-        BluetoothGattParser gattParser = handler.getGattParser();
         Map<ChannelHandler, List<Channel>> result = new HashMap<>();
         for (GattService service : services) {
             for (GattCharacteristic characteristic : service.getCharacteristics()) {
                 logger.info("Handling a new characteristic: {}", characteristic.getURL());
 
-                boolean isKnownCharacteristic = gattParser.isKnownCharacteristic(
+                boolean isKnownCharacteristic = handler.getBluetoothContext().getParser().isKnownCharacteristic(
                         characteristic.getURL().getCharacteristicUUID());
-                if (!unknownAttributes && !isKnownCharacteristic) {
+                if (!handler.getBindingConfig().isDiscoverUnknownAttributes() && !isKnownCharacteristic) {
                     logger.info("Skipping unknown characteristic: {} ", characteristic.getURL());
                     continue;
                 }
@@ -94,7 +80,7 @@ class BluetoothChannelBuilder {
 
     private List<Channel> buildChannels(Thing thing, GattService service, GattCharacteristic characteristic) {
         List<Channel> channels = new ArrayList<>();
-        for (Field field : handler.getGattParser().getFields(characteristic.getURL().getCharacteristicUUID())) {
+        for (Field field : handler.getParser().getFields(characteristic.getURL().getCharacteristicUUID())) {
             Channel channel = buildChannel(thing, service, characteristic, field);
             channels.add(channel);
         }
@@ -129,6 +115,7 @@ class BluetoothChannelBuilder {
     }
 
     private String getChannelType(GattService service, GattCharacteristic characteristic, Field field) {
+        List<String> advancedServices = handler.getBindingConfig().getAdvancedGattServices();
         boolean advanced = advancedServices != null && advancedServices.contains(service.getURL().getServiceUUID());
         boolean readOnly = !BluetoothUtils.hasWriteAccess(characteristic.getFlags());
 
@@ -149,7 +136,7 @@ class BluetoothChannelBuilder {
     }
 
     private String getChannelLabel(String characteristicUUID, Field field) {
-        Characteristic spec = handler.getGattParser().getCharacteristic(characteristicUUID);
+        Characteristic spec = handler.getParser().getCharacteristic(characteristicUUID);
         if (spec.getValue().getFields().size() > 1) {
             return spec.getName() + "/" + field.getName();
         } else {

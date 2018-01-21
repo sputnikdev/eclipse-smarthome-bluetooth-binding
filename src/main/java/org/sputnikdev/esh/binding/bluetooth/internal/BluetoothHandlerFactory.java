@@ -4,13 +4,12 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
-import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandlerFactory;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Component;
@@ -20,10 +19,10 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParserFactory;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
-import org.sputnikdev.bluetooth.manager.impl.BluetoothManagerFactory;
-import org.sputnikdev.bluetooth.manager.impl.BluetoothObjectFactoryProvider;
+import org.sputnikdev.bluetooth.manager.impl.BluetoothManagerBuilder;
 import org.sputnikdev.bluetooth.manager.transport.BluetoothObjectFactory;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
+import org.sputnikdev.esh.binding.bluetooth.discovery.BluetoothDiscoveryServiceImpl;
 import org.sputnikdev.esh.binding.bluetooth.handler.AdapterHandler;
 import org.sputnikdev.esh.binding.bluetooth.handler.BluetoothDeviceHandler;
 import org.sputnikdev.esh.binding.bluetooth.handler.GenericBluetoothDeviceHandler;
@@ -36,8 +35,7 @@ import java.util.Map;
 
 
 /**
- * The {@link BluetoothHandlerFactory} is responsible for creating things and thing
- * handlers.
+ * The {@link BluetoothHandlerFactory} is responsible for creating things and thing handlers.
  * 
  * @author Vlad Kolotov - Initial contribution
  */
@@ -45,70 +43,28 @@ import java.util.Map;
 public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
     private ServiceRegistration<BluetoothManager> bluetoothManagerServiceRegistration;
-    private BluetoothManager bluetoothManager;
-    private ServiceRegistration<BluetoothGattParser> bluetoothGattParserServiceRegistration;
-    private BluetoothGattParser gattParser;
-    private ItemRegistry itemRegistry;
-    private ThingRegistry thingRegistry;
-    private BluetoothBindingConfig config;
+    private BluetoothContext bluetoothContext;
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
         return BluetoothBindingConstants.SUPPORTED_THING_TYPES.contains(thingTypeUID);
     }
 
-    public BluetoothManager getBluetoothManager() {
-        return bluetoothManager;
-    }
-
-    public BluetoothGattParser getGattParser() {
-        return gattParser;
-    }
-
-    public BluetoothBindingConfig getBindingConfig() {
-        return config;
-    }
-
-    public ItemRegistry getItemRegistry() {
-        return itemRegistry;
-    }
-
-    public ThingRegistry getThingRegistry() {
-        return thingRegistry;
-    }
-
     @Override
     protected void activate(ComponentContext componentContext) {
         super.activate(componentContext);
-
-        Map<String, Object> properties = convertDictionary(componentContext.getProperties());
-        config = parseConfig(properties);
-
-        BluetoothObjectFactoryProvider.getRegisteredFactories().forEach(factory -> {
-            factory.configure(properties);
-        });
-        bluetoothManager = BluetoothManagerFactory.getManager();
-        bluetoothManager.setRefreshRate(config.getUpdateRate());
-        bluetoothManager.enableCombinedAdapters(config.isCombinedAdaptersEnabled());
-        bluetoothManager.enableCombinedDevices(config.isCombinedDevicesEnabled());
-        gattParser = BluetoothGattParserFactory.getDefault();
-        File extensionFolderFile = new File(config.getExtensionFolder());
-        if (extensionFolderFile.exists() && extensionFolderFile.isDirectory()) {
-            gattParser.loadExtensionsFromFolder(config.getExtensionFolder());
-        }
-        bluetoothManagerServiceRegistration = (ServiceRegistration<BluetoothManager>)
-            bundleContext.registerService(BluetoothManager.class.getName(), bluetoothManager, new Hashtable<>());
-        bluetoothGattParserServiceRegistration = (ServiceRegistration<BluetoothGattParser>)
-            bundleContext.registerService(BluetoothGattParser.class.getName(), gattParser, new Hashtable<>());
+        BluetoothBindingConfig config = getConfig(componentContext);
+        bluetoothContext = new BluetoothContext(getBluetoothManager(config), getGattParser(config), config);
+        registerBluetoothObjectFactories();
+        publishServices();
     }
 
     @Override
     protected void deactivate(ComponentContext componentContext) {
         bluetoothManagerServiceRegistration.unregister();
-        bluetoothGattParserServiceRegistration.unregister();
-        BluetoothManagerFactory.dispose(bluetoothManager);
-        bluetoothManager = null;
-        gattParser = null;
+        bluetoothManagerServiceRegistration = null;
+        bluetoothContext.getManager().dispose();
+        bluetoothContext = null;
     }
 
     @Override
@@ -117,58 +73,75 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         ThingTypeUID thingTypeUID = thing.getThingTypeUID();
 
         if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_ADAPTER)) {
-            return new AdapterHandler(this, thing);
+            return new AdapterHandler(thing, bluetoothContext);
         }
 
         if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)
                 || thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC_DEDICATED)) {
-            GenericBluetoothDeviceHandler genericBluetoothDeviceHandler =
-                    new GenericBluetoothDeviceHandler(this, thing);
-            genericBluetoothDeviceHandler.setInitialOnlineTimeout(config.getInitialOnlineTimeout());
-            return genericBluetoothDeviceHandler;
+            return new GenericBluetoothDeviceHandler(thing, bluetoothContext);
         }
 
         if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)
                 || thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED)) {
             BluetoothDeviceHandler bluetoothDeviceHandler =
-                    new BluetoothDeviceHandler(this, thing);
-            bluetoothDeviceHandler.setInitialOnlineTimeout(config.getInitialOnlineTimeout());
-            bluetoothDeviceHandler.setInitialConnectionControl(config.isInitialConnectionControl());
+                    new BluetoothDeviceHandler(thing, bluetoothContext);
             return bluetoothDeviceHandler;
         }
 
         return null;
     }
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    public void setItemRegistry(ItemRegistry itemRegistry) {
-        this.itemRegistry = itemRegistry;
-    }
-
-    public void unsetItemRegistry(ItemRegistry itemRegistry) {
-        this.itemRegistry = null;
-    }
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    public void setThingRegistry(ThingRegistry thingRegistry) {
-        this.thingRegistry = thingRegistry;
-    }
-
-    public void unsetThingRegistry(ItemRegistry thingRegistry) {
-        this.thingRegistry = null;
-    }
-
     @Reference(unbind = "unregisterBluetoothObjectFactory", cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC)
-    public void registerBluetoothObjectFactory(BluetoothObjectFactory bluetoothObjectFactory) {
-        if (config != null) {
-            bluetoothObjectFactory.configure(convert(config));
+    protected void registerBluetoothObjectFactory(BluetoothObjectFactory bluetoothObjectFactory) {
+        if (bluetoothContext != null) {
+            bluetoothObjectFactory.configure(convert(bluetoothContext.getConfig()));
+            bluetoothContext.getManager().registerFactory(bluetoothObjectFactory);
         }
-        BluetoothObjectFactoryProvider.registerFactory(bluetoothObjectFactory);
     }
 
-    public void unregisterBluetoothObjectFactory(BluetoothObjectFactory bluetoothObjectFactory) {
-        BluetoothObjectFactoryProvider.unregisterFactory(bluetoothObjectFactory);
+    protected void unregisterBluetoothObjectFactory(BluetoothObjectFactory bluetoothObjectFactory) {
+        if (bluetoothContext != null) {
+            bluetoothContext.getManager().unregisterFactory(bluetoothObjectFactory);
+        }
+    }
+
+    private static BluetoothBindingConfig getConfig(ComponentContext componentContext) {
+        Map<String, Object> properties = convertDictionary(componentContext.getProperties());
+        return parseConfig(properties);
+    }
+
+
+    private static BluetoothManager getBluetoothManager(BluetoothBindingConfig config) {
+        return new BluetoothManagerBuilder()
+                .withRefreshRate(config.getUpdateRate())
+                .withCombinedDevices(config.isCombinedDevicesEnabled())
+                .withRediscover(true)
+                .withDiscoveryRate(BluetoothDiscoveryServiceImpl.DISCOVERY_RATE_SEC)
+                .build();
+    }
+
+    private static BluetoothGattParser getGattParser(BluetoothBindingConfig config) {
+        BluetoothGattParser gattParser = BluetoothGattParserFactory.getDefault();
+        File extensionFolderFile = new File(config.getExtensionFolder());
+        if (extensionFolderFile.exists() && extensionFolderFile.isDirectory()) {
+            gattParser.loadExtensionsFromFolder(config.getExtensionFolder());
+        }
+        return gattParser;
+    }
+
+    private void publishServices() {
+        bluetoothManagerServiceRegistration =
+                bundleContext.registerService(BluetoothManager.class, bluetoothContext.getManager(), new Hashtable<>());
+    }
+
+    private void registerBluetoothObjectFactories() {
+        try {
+            bundleContext.getServiceReferences(BluetoothObjectFactory.class,null)
+                    .forEach(ref -> registerBluetoothObjectFactory(bundleContext.getService(ref)));
+        } catch (InvalidSyntaxException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static BluetoothBindingConfig parseConfig(Map<String, Object> properties) {

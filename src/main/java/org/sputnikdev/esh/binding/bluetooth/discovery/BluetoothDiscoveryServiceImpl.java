@@ -21,6 +21,7 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 /**
+ * Bluetooth adapters and devices discovery service.
  *
  * @author Vlad Kolotov
  */
@@ -28,7 +29,7 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
         implements DeviceDiscoveryListener, AdapterDiscoveryListener {
 
-    private static final int DISCOVERY_RATE_SEC = 10;
+    public static final int DISCOVERY_RATE_SEC = 10;
 
     private final Logger logger = LoggerFactory.getLogger(BluetoothDiscoveryServiceImpl.class);
     private BluetoothManager bluetoothManager;
@@ -104,8 +105,6 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public void setBluetoothManager(BluetoothManager bluetoothManager) {
         this.bluetoothManager = bluetoothManager;
-        this.bluetoothManager.setDiscoveryRate(DISCOVERY_RATE_SEC);
-        this.bluetoothManager.setRediscover(true);
         this.bluetoothManager.addAdapterDiscoveryListener(this);
         this.bluetoothManager.addDeviceDiscoveryListener(this);
     }

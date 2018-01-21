@@ -13,13 +13,15 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
+ * An utility class which contains some common functionality for the bluetooth handlers.
+ *
  * @author Vlad Kolotov
  */
-public class BluetoothUtils {
+public final class BluetoothUtils {
 
     private static final String MAC_PART_REGEXP = "(\\w{2}(?=(\\w{2})))";
 
-    private BluetoothUtils() {}
+    private BluetoothUtils() { }
 
     public static ThingUID getAdapterUID(URL url) {
         return new ThingUID(BluetoothBindingConstants.THING_TYPE_ADAPTER, getUID(url.getAdapterAddress()));
@@ -64,21 +66,9 @@ public class BluetoothUtils {
         return channelUID;
     }
 
-    public static String getItemUID(URL url) {
-        String itemUID;
-        if (isCombined(url)) {
-            itemUID = BluetoothBindingConstants.THING_TYPE_BLE.getAsString().replace(":", "_");
-        } else {
-            itemUID = BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED.getAsString().replace(":", "_")
-                    + "_" + getUID(url.getAdapterAddress());
-        }
-        itemUID += "_" + getUID(url.getDeviceAddress()) + "_" + getChannelUID(url).replaceAll("-", "_");
-        return itemUID;
-    }
-
     public static boolean hasNotificationAccess(Set<CharacteristicAccessType> flags) {
-        return flags.contains(CharacteristicAccessType.NOTIFY) ||
-                flags.contains(CharacteristicAccessType.INDICATE);
+        return flags.contains(CharacteristicAccessType.NOTIFY)
+                || flags.contains(CharacteristicAccessType.INDICATE);
     }
 
     public static boolean hasReadAccess(Set<CharacteristicAccessType> flags) {
@@ -87,8 +77,8 @@ public class BluetoothUtils {
 
     public static boolean hasWriteAccess(Set<CharacteristicAccessType> flags) {
 
-        return flags.contains(CharacteristicAccessType.WRITE) ||
-                flags.contains(CharacteristicAccessType.WRITE_WITHOUT_RESPONSE);
+        return flags.contains(CharacteristicAccessType.WRITE)
+                || flags.contains(CharacteristicAccessType.WRITE_WITHOUT_RESPONSE);
     }
 
     public static boolean isCombined(URL url) {

@@ -15,14 +15,14 @@ import org.sputnikdev.bluetooth.manager.AdapterListener;
 import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.AdapterConfig;
-import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothHandlerFactory;
+import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
 /**
- *
+ * A bluetooth handler which represents bluetooth adapters.
  * 
  * @author Vlad Kolotov - Initial contribution
  */
@@ -52,8 +52,13 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         }
     };
 
-    public AdapterHandler(BluetoothHandlerFactory factory, Thing thing) {
-        super(factory, thing);
+    /**
+     * Created an instance of the handler.
+     * @param thing a thing
+     * @param bluetoothContext bluetooth context
+     */
+    public AdapterHandler(Thing thing, BluetoothContext bluetoothContext) {
+        super(thing, bluetoothContext);
         addChannelHandlers(Arrays.asList(discoveringHandler, discoveringControlHandler));
         if (thing.getLocation() == null) {
             thing.setLocation(BluetoothBindingConstants.DEFAULT_ADAPTERS_LOCATION);
@@ -98,6 +103,9 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
     @Override
     public void ready(boolean ready) {
         updateStatus(ready ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
+        if (!ready) {
+            discoveringHandler.updateChannel(false);
+        }
     }
 
     @Override

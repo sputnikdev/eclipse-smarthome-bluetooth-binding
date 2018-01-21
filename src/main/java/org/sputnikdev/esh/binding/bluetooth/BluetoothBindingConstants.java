@@ -8,10 +8,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The {@link BluetoothBindingConstants} class defines common constants, which are
- * used across the whole binding.
+ * The {@link BluetoothBindingConstants} class defines some bluetooth binding constants.
  * 
- * @author Vlad Kolotov - Initial contribution
+ * @author Vlad Kolotov
  */
 public final class BluetoothBindingConstants {
 

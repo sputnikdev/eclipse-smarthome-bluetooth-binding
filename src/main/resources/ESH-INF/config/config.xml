@@ -119,7 +119,7 @@
             <required>true</required>
         </parameter>
 
-        <parameter name="preferredAdapter" type="text" groupName="connection" pattern="^(\w\w:){5}\w\w$" multiple="false">
+        <parameter name="preferredBluetoothAdapter" type="text" groupName="connection" pattern="^(\w\w:){5}\w\w$" multiple="false">
             <label>Preferred adapter</label>
             <description>Note: it is used only when "Preferred adapter" connection strategy is selected.</description>
             <required>false</required>

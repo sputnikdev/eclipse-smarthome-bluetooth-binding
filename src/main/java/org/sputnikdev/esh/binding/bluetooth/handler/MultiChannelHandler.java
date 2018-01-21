@@ -1,7 +1,5 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
-import org.eclipse.smarthome.core.items.Item;
-import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.StringType;
@@ -27,11 +25,15 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
+ * A multi-channel bluetooth device handler which represents a parsable GATT characteristic
+ * where each channel is mapped to corresponding GATT field of the characteristic.
+ *
  * @author Vlad Kolotov
  */
 class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorListener {
@@ -41,11 +43,12 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
     private final BluetoothHandler handler;
     private final URL url;
     private final Set<CharacteristicAccessType> flags;
+    private byte[] data;
 
     MultiChannelHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         this.handler = handler;
         this.url = characteristicURL;
-        this.flags = flags;
+        this.flags = new HashSet<>(flags);
     }
 
     @Override
@@ -87,15 +90,28 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
 
     @Override
     public void changed(byte[] value) {
-        Map<String, FieldHolder> fields = parseCharacteristic(value);
-        for (FieldHolder holder : fields.values()) {
+        data = value;
+        Map<String, FieldHolder> holders = parseCharacteristic(data);
+        for (FieldHolder holder : holders.values()) {
             updateState(getChannel(holder), holder);
         }
     }
 
+    @Override
+    public void ready(boolean isReady) {
+        if (isReady) {
+            updateChannels();
+        }
+    }
+
+    @Override
+    public void lastUpdatedChanged(Date lastActivity) { /* do nothing */ }
+
     private void updateChannels() {
-        if (BluetoothUtils.hasReadAccess(flags)) {
-            Map<String, FieldHolder> holders = parseCharacteristic();
+        CharacteristicGovernor governor = getGovernor();
+        if (governor.isReadable()) {
+            data = getGovernor().read();
+            Map<String, FieldHolder> holders = parseCharacteristic(data);
             for (FieldHolder holder : holders.values()) {
                 updateState(getChannel(holder), holder);
             }
@@ -104,21 +120,24 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
 
     private void updateThing(String fieldName, State state) {
         if (BluetoothUtils.hasWriteAccess(flags)) {
-            BluetoothGattParser gattParser = handler.getGattParser();
-            GattRequest request = gattParser.prepare(url.getCharacteristicUUID());
+            BluetoothGattParser gattParser = handler.getBluetoothContext().getParser();
 
-            for (FieldHolder fieldHolder : request.getAllFieldHolders()) {
-                if (fieldHolder.getField().getName().equals(fieldName)) {
-                    updateHolder(fieldHolder, state);
-                } else {
-                    Item item = getItem(fieldHolder);
-                    updateHolder(fieldHolder, item.getState());
-                }
+            if (data == null && BluetoothUtils.hasReadAccess(flags)) {
+                data = getGovernor().read();
             }
-            byte[] data = gattParser.serialize(request);
+
+            GattRequest request;
+            if (data == null) {
+                request = gattParser.prepare(url.getCharacteristicUUID());
+            } else {
+                request = gattParser.prepare(url.getCharacteristicUUID(), data);
+            }
+
+            updateHolder(request.getFieldHolder(fieldName), state);
+            data = gattParser.serialize(request);
             if (!getGovernor().write(data)) {
-                this.handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        "Could not write data to characteristic: " + getURL());
+                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Could not write data to characteristic: " + url);
             }
         }
     }
@@ -130,9 +149,9 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
 
     private Map<String, FieldHolder> parseCharacteristic(byte[] value) {
         try {
-            return handler.getGattParser().parse(url.getCharacteristicUUID(), value).getHolders();
+            return handler.getBluetoothContext().getParser().parse(url.getCharacteristicUUID(), value).getHolders();
         } catch (CharacteristicFormatException ex) {
-            logger.error("Could not parse characteristic: {}. Ignoring it...", url);
+            logger.error("Could not parse characteristic: " + url + ". Ignoring it...", ex);
             return new LinkedHashMap<>();
         }
     }
@@ -153,7 +172,7 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
         handler.updateState(channel.getUID(), state);
     }
 
-    private void updateHolder(FieldHolder holder, State state) {
+    private static void updateHolder(FieldHolder holder, State state) {
         if (holder.getField().getFormat().isBoolean()) {
             holder.setBoolean(convert(state, OnOffType.class) == OnOffType.ON);
         } else if (holder.getField().getFormat().isReal()) {
@@ -168,7 +187,7 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
         }
     }
 
-    private State convert(State state, Class<? extends State> typeClass) {
+    private static State convert(State state, Class<? extends State> typeClass) {
         return state.as(typeClass);
     }
 
@@ -177,26 +196,8 @@ class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorList
                 BluetoothUtils.getChannelUID(url.copyWithField(fieldHolder.getField().getName())));
     }
 
-    private Item getItem(FieldHolder fieldHolder) {
-        String itemID = BluetoothUtils.getItemUID(url.copyWithField(fieldHolder.getField().getName()));
-        try {
-            return this.handler.getItemRegistry().getItem(itemID);
-        } catch (ItemNotFoundException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     private CharacteristicGovernor getGovernor() {
-        return this.handler.getBluetoothManager().getCharacteristicGovernor(url);
+        return handler.getBluetoothContext().getManager().getCharacteristicGovernor(url);
     }
 
-    @Override
-    public void ready(boolean isReady) {
-        if (isReady) {
-            updateChannels();
-        }
-    }
-
-    @Override
-    public void lastUpdatedChanged(Date lastActivity) { /* do nothing */ }
 }
