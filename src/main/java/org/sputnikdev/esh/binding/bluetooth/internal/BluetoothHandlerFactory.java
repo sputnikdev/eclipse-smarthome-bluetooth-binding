@@ -118,6 +118,9 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
                 .withCombinedDevices(config.isCombinedDevicesEnabled())
                 .withRediscover(true)
                 .withDiscoveryRate(BluetoothDiscoveryServiceImpl.DISCOVERY_RATE_SEC)
+                // discovering will be enabled for each adapter individually
+                .withDiscovering(false)
+                .withStarted(true)
                 .build();
     }
 
