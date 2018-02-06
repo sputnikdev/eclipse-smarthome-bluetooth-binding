@@ -116,10 +116,20 @@ public class BluetoothBindingConfig {
         this.serialPortRegex = serialPortRegex;
     }
 
+    /**
+     * Returns a list of GATT service UUIDs to be excluded from the automatic channel linkage.
+     * No items/channels will be automatically created for these services.
+     * @return list of GATT service UUIDs
+     */
     public List<String> getAdvancedGattServices() {
         return advancedGattServices;
     }
 
+    /**
+     * Sets a list of GATT service UUIDs to be excluded from the automatic channel linkage.
+     * No items/channels will be automatically created for these services.
+     * @param advancedGattServices list of GATT service UUIDs
+     */
     public void setAdvancedGattServices(List<String> advancedGattServices) {
         this.advancedGattServices = Collections.unmodifiableList(advancedGattServices);
     }
@@ -146,7 +156,7 @@ public class BluetoothBindingConfig {
      * Experimental feature (for debugging). If set to false, bluetooth device things are duplicated for each
      * installed bluetooth adapter.
      *
-     * @param if set to false, bluetooth device things are duplicated for each adapter
+     * @param combinedDevicesEnabled if set to false, bluetooth device things are duplicated for each adapter
      */
     public void setCombinedDevicesEnabled(boolean combinedDevicesEnabled) {
         this.combinedDevicesEnabled = combinedDevicesEnabled;
