@@ -1,5 +1,6 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
+import com.google.common.collect.Sets;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.thing.Channel;
@@ -19,8 +20,10 @@ import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -34,6 +37,8 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     private Logger logger = LoggerFactory.getLogger(BluetoothDeviceHandler.class);
     private ScheduledFuture<?> syncTask;
+    private boolean servicesResolved;
+    private Set<URL> advertisedServices = new HashSet<>();
 
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
             BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED) {
@@ -111,34 +116,64 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     @Override
     public void servicesResolved(List<GattService> gattServices) {
-        ThingBuilder builder = editThing();
+        if (!servicesResolved) {
+            ThingBuilder builder = editThing();
 
-        logger.info("Building channels for services: {}", gattServices.size());
-        Map<ChannelHandler, List<Channel>> channels =
-                new BluetoothChannelBuilder(this).buildChannels(gattServices);
+            logger.info("Building channels for services: {}", gattServices.size());
+            Map<ChannelHandler, List<Channel>> channels =
+                    new BluetoothChannelBuilder(this).buildCharacteristicsChannels(gattServices);
 
-        for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
-            ChannelHandler channelHandler = entry.getKey();
-            addChannelHandler(channelHandler);
-            updateChannels(builder, entry.getValue());
-        }
-
-        logger.info("Updating the thing with new channels");
-        updateThing(builder.build());
-
-        for (ChannelHandler channelHandler : channels.keySet()) {
-            try {
-                channelHandler.init();
-            } catch (Exception ex) {
-                logger.error("Could not update channel handler: {}", channelHandler.getURL(), ex);
+            for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
+                ChannelHandler channelHandler = entry.getKey();
+                addChannelHandler(channelHandler);
+                updateChannels(builder, entry.getValue());
             }
+
+            logger.info("Updating the thing with new channels");
+            updateThing(builder.build());
+
+            for (ChannelHandler channelHandler : channels.keySet()) {
+                try {
+                    channelHandler.init();
+                } catch (Exception ex) {
+                    logger.error("Could not update channel handler: {}", channelHandler.getURL(), ex);
+                }
+            }
+            servicesResolved = true;
         }
     }
 
     @Override
-    public void servicesUnresolved() {
-        getChannelHandlers().stream().filter(handler -> handler instanceof MultiChannelHandler)
-                .forEach(ChannelHandler::dispose);
+    public void serviceDataChanged(Map<URL, byte[]> serviceData) {
+        Set<URL> channelsToBuild = Sets.difference(serviceData.keySet(), advertisedServices);
+
+        if (!channelsToBuild.isEmpty()) {
+            ThingBuilder builder = editThing();
+            logger.info("Building channels for services data: {}", serviceData.size());
+
+
+            Map<ChannelHandler, List<Channel>> channels =
+                    new BluetoothChannelBuilder(this).buildServicesChannels(serviceData.keySet());
+
+            for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
+                ChannelHandler channelHandler = entry.getKey();
+                addChannelHandler(channelHandler);
+                updateChannels(builder, entry.getValue());
+            }
+
+            logger.info("Updating the thing with new channels");
+            updateThing(builder.build());
+
+            for (ChannelHandler channelHandler : channels.keySet()) {
+                try {
+                    channelHandler.init();
+                } catch (Exception ex) {
+                    logger.error("Could not update channel handler: {}", channelHandler.getURL(), ex);
+                }
+            }
+            advertisedServices.addAll(channelsToBuild);
+        }
+
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A root thing handler for all bluetooth handlers. Defines overall structure and provides some useful methods
@@ -33,7 +34,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     private final BluetoothContext bluetoothContext;
     private final URL url;
-    private final List<ChannelHandler> channelHandlers = new ArrayList<>();
+    private final List<ChannelHandler> channelHandlers = new CopyOnWriteArrayList<>();
 
     BluetoothHandler(Thing thing, BluetoothContext bluetoothContext) {
         super(thing);
@@ -49,9 +50,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        synchronized (channelHandlers) {
-            channelHandlers.forEach(channel -> channel.handleCommand(channelUID, command));
-        }
+        channelHandlers.forEach(channel -> channel.handleCommand(channelUID, command));
     }
 
     @Override
@@ -123,15 +122,11 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     }
 
     protected void addChannelHandler(ChannelHandler channelHandler) {
-        synchronized (channelHandlers) {
-            channelHandlers.add(channelHandler);
-        }
+        channelHandlers.add(channelHandler);
     }
 
     protected void addChannelHandlers(List<ChannelHandler> handlers) {
-        synchronized (channelHandlers) {
-            channelHandlers.addAll(handlers);
-        }
+        channelHandlers.addAll(handlers);
     }
 
     protected URL getURL() {
@@ -152,15 +147,11 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     }
 
     private void initChannelHandlers() {
-        synchronized (channelHandlers) {
-            channelHandlers.forEach(ChannelHandler::init);
-        }
+        channelHandlers.forEach(ChannelHandler::init);
     }
 
     private void disposeChannelHandlers() {
-        synchronized (channelHandlers) {
-            channelHandlers.forEach(ChannelHandler::dispose);
-        }
+        channelHandlers.forEach(ChannelHandler::dispose);
         channelHandlers.clear();
     }
 

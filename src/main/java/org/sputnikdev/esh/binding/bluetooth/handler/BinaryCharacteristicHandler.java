@@ -16,23 +16,22 @@ import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Set;
 
 /**
- * Binary data channel handler.
+ * Binary data channel handler for GATT characteristics.
  *
  * @author Vlad Kolotov
  */
-class BinaryChannelHandler implements ChannelHandler, ValueListener, GovernorListener {
+class BinaryCharacteristicHandler implements ChannelHandler, ValueListener, GovernorListener {
 
-    private Logger logger = LoggerFactory.getLogger(BinaryChannelHandler.class);
+    private Logger logger = LoggerFactory.getLogger(BinaryCharacteristicHandler.class);
 
     private final BluetoothHandler handler;
     private final URL url;
     private final Set<CharacteristicAccessType> flags;
 
-    BinaryChannelHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
+    BinaryCharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         this.handler = handler;
         url = characteristicURL;
         this.flags = flags;
@@ -75,13 +74,10 @@ class BinaryChannelHandler implements ChannelHandler, ValueListener, GovernorLis
 
     @Override
     public void changed(byte[] value) {
-        String[] hexFormatted = new String[value.length];
-        int index = 0;
-        for (byte b : value) {
-            hexFormatted[index++] = String.format("%02x", b);
-        }
         handler.updateState(BluetoothUtils.getChannelUID(url),
-                value != null ? new StringType(Arrays.toString(hexFormatted)) : UnDefType.UNDEF);
+                value != null
+                        ? new StringType(handler.getBluetoothContext().getParser().parse(value, 16))
+                        : UnDefType.UNDEF);
     }
 
     private CharacteristicGovernor getGovernor() {
@@ -96,20 +92,11 @@ class BinaryChannelHandler implements ChannelHandler, ValueListener, GovernorLis
         }
     }
 
-    @Override
-    public void lastUpdatedChanged(Date lastActivity) { /* do nothing */ }
-
     private byte[] convert(StringType command) {
         if (command == null) {
             return null;
         }
         String data = command.toString();
-        data = data.replace("[", "").replace("]", "");
-        String[] tokens = data.split(",");
-        byte[] bytes = new byte[tokens.length];
-        for (int i = 0; i < tokens.length; i++) {
-            bytes[i] = Byte.valueOf(tokens[i], 16);
-        }
-        return bytes;
+        return handler.getBluetoothContext().getParser().serialize(data, 16);
     }
 }

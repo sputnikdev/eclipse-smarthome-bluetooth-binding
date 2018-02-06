@@ -36,16 +36,16 @@ import java.util.Set;
  *
  * @author Vlad Kolotov
  */
-class MultiChannelHandler implements ChannelHandler, ValueListener, GovernorListener {
+class CharacteristicHandler implements ChannelHandler, ValueListener, GovernorListener {
 
-    private Logger logger = LoggerFactory.getLogger(MultiChannelHandler.class);
+    private Logger logger = LoggerFactory.getLogger(CharacteristicHandler.class);
 
     private final BluetoothHandler handler;
     private final URL url;
     private final Set<CharacteristicAccessType> flags;
     private byte[] data;
 
-    MultiChannelHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
+    CharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         this.handler = handler;
         this.url = characteristicURL;
         this.flags = new HashSet<>(flags);
