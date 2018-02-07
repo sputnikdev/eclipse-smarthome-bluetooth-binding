@@ -83,7 +83,7 @@ class BluetoothChannelBuilder {
         List<Channel> channels = new ArrayList<>();
         for (Field field : handler.getParser().getFields(url.getCharacteristicUUID())) {
             if (!field.isFlagField()
-                    && !field.isUnknown() || handler.getBindingConfig().isDiscoverUnknownAttributes()) {
+                    && (!field.isUnknown() || handler.getBindingConfig().isDiscoverUnknownAttributes())) {
                 channels.add(buildFieldChannel(url, field, false, true));
             }
         }
