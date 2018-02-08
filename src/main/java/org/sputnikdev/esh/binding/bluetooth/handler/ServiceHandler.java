@@ -110,19 +110,7 @@ class ServiceHandler implements ChannelHandler, BluetoothSmartDeviceListener, Go
     }
 
     private void updateState(Channel channel, FieldHolder holder) {
-        State state;
-        if (holder.isValueSet()) {
-            if (holder.getField().getFormat().isBoolean()) {
-                state = holder.getBoolean() ? OnOffType.ON : OnOffType.OFF;
-            } else if (holder.getField().getFormat().isNumber()) {
-                state = new DecimalType(holder.getString());
-            } else {
-                state = new StringType(holder.getString());
-            }
-        } else {
-            state = UnDefType.UNDEF;
-        }
-        handler.updateState(channel.getUID(), state);
+        handler.updateState(channel.getUID(), BluetoothUtils.convert(holder));
     }
 
     private Channel getChannel(FieldHolder fieldHolder) {

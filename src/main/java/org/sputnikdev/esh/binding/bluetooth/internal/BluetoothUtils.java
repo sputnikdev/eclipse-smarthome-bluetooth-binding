@@ -1,9 +1,15 @@
 package org.sputnikdev.esh.binding.bluetooth.internal;
 
+import org.eclipse.smarthome.core.library.types.DecimalType;
+import org.eclipse.smarthome.core.library.types.OnOffType;
+import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
+import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
 import org.sputnikdev.bluetooth.URL;
+import org.sputnikdev.bluetooth.gattparser.FieldHolder;
 import org.sputnikdev.bluetooth.manager.CombinedGovernor;
 import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
@@ -90,6 +96,22 @@ public final class BluetoothUtils {
             return longUUID;
         }
         return Long.toHexString(Long.valueOf(longUUID.substring(0, 8), 16)).toUpperCase();
+    }
+
+    public static State convert(FieldHolder holder) {
+        State state;
+        if (holder.isValueSet()) {
+            if (holder.getField().getFormat().isBoolean()) {
+                state = holder.getBoolean() ? OnOffType.ON : OnOffType.OFF;
+            } else if (holder.getField().getFormat().isNumber()) {
+                state = new DecimalType(holder.getBigDecimal());
+            } else {
+                state = new StringType(holder.getString());
+            }
+        } else {
+            state = UnDefType.UNDEF;
+        }
+        return state;
     }
 
     private static String getUID(String address) {
