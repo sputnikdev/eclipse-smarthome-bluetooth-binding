@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A bluetooth handler which represents BLE bluetooth devices (bluetooth v4.0+).
@@ -38,7 +39,8 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     private Logger logger = LoggerFactory.getLogger(BluetoothDeviceHandler.class);
     private ScheduledFuture<?> syncTask;
     private boolean servicesResolved;
-    private Set<URL> advertisedServices = new HashSet<>();
+    private final Set<URL> advertisedServices = new HashSet<>();
+    private final ReentrantLock advertisedServicesLock = new ReentrantLock();
 
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
             BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED) {
@@ -93,7 +95,9 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     @Override
     public void dispose() {
-        syncTask.cancel(true);
+        if (syncTask != null) {
+            syncTask.cancel(true);
+        }
         syncTask = null;
         DeviceGovernor deviceGovernor = getGovernor();
         deviceGovernor.removeBluetoothSmartDeviceListener(this);
@@ -146,34 +150,19 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     @Override
     public void serviceDataChanged(Map<URL, byte[]> serviceData) {
         Set<URL> channelsToBuild = Sets.difference(serviceData.keySet(), advertisedServices);
-
         if (!channelsToBuild.isEmpty()) {
-            ThingBuilder builder = editThing();
-            logger.info("Building channels for services data: {}", serviceData.size());
-
-
-            Map<ChannelHandler, List<Channel>> channels =
-                    new BluetoothChannelBuilder(this).buildServicesChannels(serviceData.keySet());
-
-            for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
-                ChannelHandler channelHandler = entry.getKey();
-                addChannelHandler(channelHandler);
-                updateChannels(builder, entry.getValue());
-            }
-
-            logger.info("Updating the thing with new channels");
-            updateThing(builder.build());
-
-            for (ChannelHandler channelHandler : channels.keySet()) {
+            if (advertisedServicesLock.tryLock()) {
                 try {
-                    channelHandler.init();
-                } catch (Exception ex) {
-                    logger.error("Could not update channel handler: {}", channelHandler.getURL(), ex);
+                    serviceData.entrySet().stream()
+                            .filter(entry -> checkServiceDataHandlerNeeded(entry.getKey())).forEach(entry -> {
+                                buildHandler(entry.getKey(), entry.getValue());
+                            });
+                    advertisedServices.addAll(channelsToBuild);
+                } finally {
+                    advertisedServicesLock.unlock();
                 }
             }
-            advertisedServices.addAll(channelsToBuild);
         }
-
     }
 
     @Override
@@ -198,6 +187,20 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
                 builder.withChannel(channel);
             }
         }
+    }
+
+    private boolean checkServiceDataHandlerNeeded(URL url) {
+        return !advertisedServices.contains(url)
+                && (getParser().isKnownCharacteristic(url.getServiceUUID())
+                || getBindingConfig().isDiscoverUnknownAttributes());
+    }
+
+    private void buildHandler(URL url, byte[] data) {
+        logger.debug("Building a new handler for service data url: {}", url);
+        URL virtualURL = url.copyWithCharacteristic(url.getServiceUUID());
+        ServiceHandler serviceHandler = new ServiceHandler(this, virtualURL);
+        addChannelHandler(serviceHandler);
+        serviceHandler.init(data);
     }
 
 }

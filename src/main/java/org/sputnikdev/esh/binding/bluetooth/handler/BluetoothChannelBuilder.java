@@ -134,7 +134,7 @@ class BluetoothChannelBuilder {
         return channels;
     }
 
-    private Channel buildCharacteristicBinaryChannel(URL characteristicURL, boolean advanced, boolean readOnly) {
+    protected Channel buildCharacteristicBinaryChannel(URL characteristicURL, boolean advanced, boolean readOnly) {
         ChannelUID channelUID = new ChannelUID(handler.getThing().getUID(),
                 BluetoothUtils.getChannelUID(characteristicURL));
 
@@ -147,7 +147,7 @@ class BluetoothChannelBuilder {
                 .build();
     }
 
-    private Channel buildFieldChannel(URL characteristicURL, Field field, boolean advanced, boolean readOnly) {
+    protected Channel buildFieldChannel(URL characteristicURL, Field field, boolean advanced, boolean readOnly) {
         URL channelURL = characteristicURL.copyWithField(field.getName());
         ChannelUID channelUID = new ChannelUID(handler.getThing().getUID(), BluetoothUtils.getChannelUID(channelURL));
 

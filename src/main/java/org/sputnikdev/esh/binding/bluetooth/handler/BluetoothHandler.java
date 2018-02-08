@@ -1,11 +1,13 @@
 package org.sputnikdev.esh.binding.bluetooth.handler;
 
 import org.eclipse.smarthome.config.core.Configuration;
+import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
 import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
+import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
 import org.slf4j.Logger;
@@ -17,7 +19,6 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothBindingConfig;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -109,6 +110,16 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         super.updateStatus(status, statusDetail, description);
     }
 
+    @Override
+    protected ThingBuilder editThing() {
+        return super.editThing();
+    }
+
+    @Override
+    protected void updateThing(Thing thing) {
+        super.updateThing(thing);
+    }
+
     protected void updateDevice(Configuration configuration) {
         // default implementation
     }
@@ -144,6 +155,10 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     protected BluetoothBindingConfig getBindingConfig() {
         return bluetoothContext.getConfig();
+    }
+
+    protected Channel getChannel(URL url) {
+        return thing.getChannel(BluetoothUtils.getChannelUID(url));
     }
 
     private void initChannelHandlers() {
