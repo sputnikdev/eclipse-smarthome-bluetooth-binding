@@ -161,6 +161,10 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         return thing.getChannel(BluetoothUtils.getChannelUID(url));
     }
 
+    protected Channel getChannel(String uid) {
+        return thing.getChannel(uid);
+    }
+
     private void initChannelHandlers() {
         channelHandlers.forEach(ChannelHandler::init);
     }

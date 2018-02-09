@@ -37,6 +37,7 @@ class ServiceHandler implements ChannelHandler, BluetoothSmartDeviceListener, Go
     private final BluetoothHandler handler;
     private final URL url;
     private final boolean knownCharacteristic;
+    private final Object updateLock = new Object();
 
     ServiceHandler(BluetoothHandler handler, URL serviceURL) {
         this.handler = handler;
@@ -105,12 +106,12 @@ class ServiceHandler implements ChannelHandler, BluetoothSmartDeviceListener, Go
     }
 
     private void buildChannels(Collection<FieldHolder> holders) {
+        logger.debug("Building new channels for service data url: {}", url);
         List<Channel> channels = new ArrayList<>();
         BluetoothChannelBuilder builder = new BluetoothChannelBuilder(handler);
         for (FieldHolder holder : holders) {
             Channel channel = getChannel(holder);
             if (channel == null) {
-                logger.debug("Building a new channel for service data url: {}", url);
                 Field field = holder.getField();
                 if (!field.isFlagField()
                         && !field.isUnknown() || handler.getBindingConfig().isDiscoverUnknownAttributes()) {
@@ -118,10 +119,17 @@ class ServiceHandler implements ChannelHandler, BluetoothSmartDeviceListener, Go
                 }
             }
         }
+
         if (!channels.isEmpty()) {
-            ThingBuilder thingBuilder = handler.editThing();
-            channels.forEach(thingBuilder::withChannel);
-            handler.updateThing(thingBuilder.build());
+            synchronized (updateLock) {
+                ThingBuilder thingBuilder = handler.editThing();
+                channels.forEach(channel -> {
+                    if (handler.getChannel(channel.getUID().getIdWithoutGroup()) == null) {
+                        thingBuilder.withChannel(channel);
+                    }
+                });
+                handler.updateThing(thingBuilder.build());
+            }
         }
     }
 

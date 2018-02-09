@@ -149,6 +149,8 @@ class BluetoothChannelBuilder {
 
     protected Channel buildFieldChannel(URL characteristicURL, Field field, boolean advanced, boolean readOnly) {
         URL channelURL = characteristicURL.copyWithField(field.getName());
+        logger.debug("Building a new channel for a field: {}", channelURL);
+
         ChannelUID channelUID = new ChannelUID(handler.getThing().getUID(), BluetoothUtils.getChannelUID(channelURL));
 
         String channelType = getChannelType(advanced, readOnly);
