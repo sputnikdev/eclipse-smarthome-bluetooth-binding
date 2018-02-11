@@ -106,7 +106,6 @@ class ServiceHandler implements ChannelHandler, BluetoothSmartDeviceListener, Go
     }
 
     private void buildChannels(Collection<FieldHolder> holders) {
-        logger.debug("Building new channels for service data url: {}", url);
         List<Channel> channels = new ArrayList<>();
         BluetoothChannelBuilder builder = new BluetoothChannelBuilder(handler);
         for (FieldHolder holder : holders) {

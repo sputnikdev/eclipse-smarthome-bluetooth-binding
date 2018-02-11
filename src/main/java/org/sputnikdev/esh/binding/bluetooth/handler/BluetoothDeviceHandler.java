@@ -90,7 +90,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
         syncTask = scheduler.scheduleAtFixedRate(() -> {
             connectionControlHandler.updateChannel(connectionControlHandler.getValue());
-        }, 5, 1, TimeUnit.SECONDS);
+        }, 5, 10, TimeUnit.SECONDS);
     }
 
     @Override
