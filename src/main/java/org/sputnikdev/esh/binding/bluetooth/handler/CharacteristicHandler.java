@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A multi-channel bluetooth device handler which represents a parsable GATT characteristic
@@ -57,6 +58,9 @@ class CharacteristicHandler implements ChannelHandler, ValueListener, GovernorLi
         characteristicGovernor.addGovernorListener(this);
         if (BluetoothUtils.hasNotificationAccess(flags)) {
             characteristicGovernor.addValueListener(this);
+        } else if (BluetoothUtils.hasReadAccess(flags)) {
+            handler.getScheduler().scheduleAtFixedRate(this::updateChannels, 0,
+                    handler.getBindingConfig().getUpdateRate(), TimeUnit.SECONDS);
         }
     }
 
@@ -109,7 +113,7 @@ class CharacteristicHandler implements ChannelHandler, ValueListener, GovernorLi
 
     private void updateChannels() {
         CharacteristicGovernor governor = getGovernor();
-        if (governor.isReadable()) {
+        if (governor.isReady() && governor.isReadable()) {
             data = getGovernor().read();
             Map<String, FieldHolder> holders = parseCharacteristic(data);
             for (FieldHolder holder : holders.values()) {
@@ -120,7 +124,7 @@ class CharacteristicHandler implements ChannelHandler, ValueListener, GovernorLi
 
     private void updateThing(String fieldName, State state) {
         if (BluetoothUtils.hasWriteAccess(flags)) {
-            BluetoothGattParser gattParser = handler.getBluetoothContext().getParser();
+            BluetoothGattParser gattParser = handler.getParser();
 
             if (data == null && BluetoothUtils.hasReadAccess(flags)) {
                 data = getGovernor().read();

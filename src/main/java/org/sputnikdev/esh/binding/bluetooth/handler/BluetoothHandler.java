@@ -22,6 +22,7 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * A root thing handler for all bluetooth handlers. Defines overall structure and provides some useful methods
@@ -163,6 +164,10 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     protected Channel getChannel(String uid) {
         return thing.getChannel(uid);
+    }
+
+    protected ScheduledExecutorService getScheduler() {
+        return scheduler;
     }
 
     private void initChannelHandlers() {
