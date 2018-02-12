@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,6 +46,7 @@ class CharacteristicHandler implements ChannelHandler, ValueListener, GovernorLi
     private final URL url;
     private final Set<CharacteristicAccessType> flags;
     private byte[] data;
+    private ScheduledFuture<?> updateTask;
 
     CharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         this.handler = handler;
@@ -59,13 +61,16 @@ class CharacteristicHandler implements ChannelHandler, ValueListener, GovernorLi
         if (BluetoothUtils.hasNotificationAccess(flags)) {
             characteristicGovernor.addValueListener(this);
         } else if (BluetoothUtils.hasReadAccess(flags)) {
-            handler.getScheduler().scheduleAtFixedRate(this::updateChannels, 0,
+            updateTask = handler.getScheduler().scheduleAtFixedRate(this::updateChannels, 0,
                     handler.getBindingConfig().getUpdateRate(), TimeUnit.SECONDS);
         }
     }
 
     @Override
     public void dispose() {
+        if (updateTask != null) {
+            updateTask.cancel(true);
+        }
         CharacteristicGovernor characteristicGovernor = getGovernor();
         characteristicGovernor.removeGovernorListener(this);
         characteristicGovernor.removeValueListener(this);
