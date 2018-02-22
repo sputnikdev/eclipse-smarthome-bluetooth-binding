@@ -17,9 +17,14 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.AdapterConfig;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A bluetooth handler which represents bluetooth adapters.
@@ -30,6 +35,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         implements BridgeHandler, AdapterListener, GovernorListener {
 
     private Logger logger = LoggerFactory.getLogger(AdapterHandler.class);
+    private ScheduledFuture<?> syncTask;
 
     private final SingleChannelHandler<Boolean, OnOffType> discoveringHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_DISCOVERING) {
@@ -74,18 +80,26 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
         adapterGovernor.setDiscoveringControl(true);
 
-        lastUpdatedChanged(new Date());
+        lastUpdatedChanged(Instant.now());
         updateDevice(getConfig());
 
         if (adapterGovernor.isReady()) {
             adapterGovernor.setAlias(thing.getLabel());
         }
         updateStatus(adapterGovernor.isReady() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
+
+        syncTask = scheduler.scheduleAtFixedRate(() -> {
+            discoveringControlHandler.updateChannel(discoveringControlHandler.getValue());
+        }, 5, 10, TimeUnit.SECONDS);
     }
 
     @Override
     public void dispose() {
         logger.info("Disposing Adapter handler");
+        if (syncTask != null) {
+            syncTask.cancel(true);
+        }
+        syncTask = null;
         AdapterGovernor adapterGovernor = getGovernor();
         adapterGovernor.removeAdapterListener(this);
         adapterGovernor.removeGovernorListener(this);
@@ -109,9 +123,8 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
     }
 
     @Override
-    public void lastUpdatedChanged(Date lastActivity) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(lastActivity);
+    public void lastUpdatedChanged(Instant lastActivity) {
+        Calendar calendar = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.now(), ZoneId.systemDefault()));
         updateState(BluetoothBindingConstants.CHANNEL_LAST_UPDATED, new DateTimeType(calendar));
     }
 

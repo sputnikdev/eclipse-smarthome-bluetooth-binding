@@ -15,8 +15,8 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 
 /**
  * A bluetooth handler which represents generic bluetooth devices (prior bluetooth v4.0).
@@ -35,10 +35,11 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     };
 
-    private final DateTimeChannelHandler lastChangedHandler = new DateTimeChannelHandler(
+    private final InstantChannelHandler lastChangedHandler = new InstantChannelHandler(
             this, BluetoothBindingConstants.CHANNEL_LAST_UPDATED) {
-        @Override Date getValue() {
-            return getGovernor().getLastActivity();
+        @Override
+        Instant getValue() {
+            return getGovernor().getLastInteracted();
         }
     };
 
@@ -171,7 +172,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     }
 
     @Override
-    public void lastUpdatedChanged(Date lastActivity) {
+    public void lastUpdatedChanged(Instant lastActivity) {
         lastChangedHandler.updateChannel(lastActivity);
     }
 

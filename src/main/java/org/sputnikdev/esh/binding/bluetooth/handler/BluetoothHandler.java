@@ -60,10 +60,6 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         logger.info("Disposing Abstract Bluetooth Handler");
         super.dispose();
         disposeChannelHandlers();
-        logger.info("Disposing bluetooth object: {}", url);
-        bluetoothContext.getManager().disposeDescendantGovernors(url);
-        bluetoothContext.getManager().disposeGovernor(url);
-        logger.info("Abstract Bluetooth Handler has been disposed");
     }
 
     @Override
