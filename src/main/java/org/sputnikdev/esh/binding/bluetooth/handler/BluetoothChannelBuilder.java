@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /**
@@ -125,7 +126,18 @@ class BluetoothChannelBuilder {
 
     private List<Channel> buildChannels(URL characteristicURL, boolean advanced, boolean readOnly) {
         List<Channel> channels = new ArrayList<>();
-        for (Field field : handler.getParser().getFields(characteristicURL.getCharacteristicUUID())) {
+
+        Map<String, List<Field>> fieldsMapping =
+                handler.getParser().getFields(characteristicURL.getCharacteristicUUID()).stream()
+                        .collect(Collectors.groupingBy(Field::getName));
+
+        for (List<Field> fields : fieldsMapping.values()) {
+            if (fields.size() > 1) {
+                logger.warn("Multiple fields with the same name found: {} / {}. Skipping these fields.",
+                        characteristicURL, fields.get(0).getName());
+                return Collections.emptyList();
+            }
+            Field field = fields.get(0);
             if (!field.isFlagField()
                     && !field.isUnknown() || handler.getBindingConfig().isDiscoverUnknownAttributes()) {
                 channels.add(buildFieldChannel(characteristicURL, field, advanced, readOnly));
@@ -153,7 +165,11 @@ class BluetoothChannelBuilder {
 
         ChannelUID channelUID = new ChannelUID(handler.getThing().getUID(), BluetoothUtils.getChannelUID(channelURL));
 
-        String channelType = getChannelType(advanced, readOnly);
+        String channelType = String.format("characteristic-%s-%s-%s-%s",
+                advanced ? "advncd" : "simple",
+                readOnly ? "readable" : "writable",
+                characteristicURL.getCharacteristicUUID(),
+                BluetoothUtils.encodeFieldName(field.getName()));
 
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BluetoothBindingConstants.BINDING_ID, channelType);
         return ChannelBuilder.create(channelUID, getAcceptedItemType(field))
