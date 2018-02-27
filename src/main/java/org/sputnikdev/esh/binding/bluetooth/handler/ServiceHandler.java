@@ -90,6 +90,10 @@ class ServiceHandler implements ChannelHandler, BluetoothSmartDeviceListener, Go
         }
     }
 
+    ChannelUID getChannelUID() {
+        return new ChannelUID(handler.getThing().getUID(), BluetoothUtils.getChannelUID(url));
+    }
+
     private void serviceDataChanged(byte[] data) {
         if (knownCharacteristic) {
             Collection<FieldHolder> holders = parseCharacteristic(data);

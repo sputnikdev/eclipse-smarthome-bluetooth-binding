@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -44,31 +45,54 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
     private final Set<CharacteristicAccessType> flags;
     private byte[] data;
     private ScheduledFuture<?> updateTask;
+    private CompletableFuture<byte[]> readyFuture;
+    private boolean linked;
 
     CharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         this.handler = handler;
-        this.url = characteristicURL;
+        url = characteristicURL;
         this.flags = new HashSet<>(flags);
     }
 
     @Override
-    public void init() {
-        CharacteristicGovernor characteristicGovernor = getGovernor();
-        if (BluetoothUtils.hasNotificationAccess(flags)) {
-            characteristicGovernor.addValueListener(this);
-            updateChannels(true);
-        } else if (BluetoothUtils.hasReadAccess(flags)) {
-            updateChannels(false);
+    public void init() { }
+
+    @Override
+    public void linked() {
+        synchronized (url) {
+            if (!linked) {
+                CharacteristicGovernor characteristicGovernor = getGovernor();
+                if (BluetoothUtils.hasNotificationAccess(flags)) {
+                    characteristicGovernor.addValueListener(this);
+                } else if (BluetoothUtils.hasReadAccess(flags)) {
+                    scheduleUpdateChannels();
+                }
+                updateChannels();
+                linked = true;
+            }
+        }
+    }
+
+    @Override
+    public void unlinked() {
+        synchronized (url) {
+            if (linked) {
+                if (updateTask != null) {
+                    updateTask.cancel(true);
+                }
+                if (readyFuture != null) {
+                    readyFuture.cancel(true);
+                }
+                CharacteristicGovernor characteristicGovernor = getGovernor();
+                characteristicGovernor.removeValueListener(this);
+                linked = false;
+            }
         }
     }
 
     @Override
     public void dispose() {
-        if (updateTask != null) {
-            updateTask.cancel(true);
-        }
-        CharacteristicGovernor characteristicGovernor = getGovernor();
-        characteristicGovernor.removeValueListener(this);
+        unlinked();
     }
 
     @Override
@@ -118,27 +142,20 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
         }
     }
 
-    private void updateChannelsContinuously() {
-        updateChannels(false);
-    }
-
-    private void updateChannels(boolean oneOff) {
-        if (BluetoothUtils.hasReadAccess(flags)) {
-            getGovernor().whenReady(CharacteristicGovernor::read)
-                    .thenAccept(newData -> {
-                        if (!oneOff) {
-                            scheduleUpdateChannels();
-                        }
-                        logger.debug("Updating channels: {}", url);
-                        data = newData;
-                        Map<String, FieldHolder> holders = parseCharacteristic(data);
-                        for (FieldHolder holder : holders.values()) {
-                            updateState(getChannel(holder), holder);
-                        }
-                    }).exceptionally(ex -> {
-                        logger.warn("Error occurred while updating channels: {}", url, ex);
-                        return null;
-                    });
+    private void updateChannels() {
+        if (BluetoothUtils.hasReadAccess(flags) && (readyFuture == null || readyFuture.isDone())) {
+            readyFuture = getGovernor().whenReady(CharacteristicGovernor::read);
+            readyFuture.thenAccept(newData -> {
+                logger.debug("Updating channels: {}", url);
+                data = newData;
+                Map<String, FieldHolder> holders = parseCharacteristic(data);
+                for (FieldHolder holder : holders.values()) {
+                    updateState(getChannel(holder), holder);
+                }
+            }).exceptionally(ex -> {
+                logger.warn("Error occurred while updating channels: {} : {}", url, ex.getMessage());
+                return null;
+            });
         }
     }
 
@@ -146,8 +163,9 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
         if (updateTask != null) {
             updateTask.cancel(false);
         }
-        updateTask = handler.getScheduler().schedule(this::updateChannelsContinuously,
-                handler.getBindingConfig().getUpdateRate(), TimeUnit.SECONDS);
+        int updateRate = handler.getBindingConfig().getUpdateRate();
+        updateTask = handler.getScheduler().scheduleWithFixedDelay(this::updateChannels,
+                updateRate, updateRate, TimeUnit.SECONDS);
     }
 
     private void updateThing(String fieldName, State state) {

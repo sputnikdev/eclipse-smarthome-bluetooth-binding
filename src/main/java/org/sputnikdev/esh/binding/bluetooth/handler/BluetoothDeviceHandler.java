@@ -128,8 +128,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
                     new BluetoothChannelBuilder(this).buildCharacteristicsChannels(gattServices);
 
             for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
-                ChannelHandler channelHandler = entry.getKey();
-                addChannelHandler(channelHandler);
+                entry.getValue().forEach(channel -> addChannelHandler(channel.getUID(), entry.getKey()));
                 updateChannels(builder, entry.getValue());
             }
 
@@ -199,7 +198,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         logger.debug("Building a new handler for service data url: {}", url);
         URL virtualURL = url.copyWithCharacteristic(url.getServiceUUID());
         ServiceHandler serviceHandler = new ServiceHandler(this, virtualURL);
-        addChannelHandler(serviceHandler);
+        addChannelHandler(serviceHandler.getChannelUID(), serviceHandler);
         serviceHandler.init(data);
     }
 

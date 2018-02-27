@@ -10,26 +10,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.manager.CharacteristicGovernor;
-import org.sputnikdev.bluetooth.manager.GovernorListener;
 import org.sputnikdev.bluetooth.manager.ValueListener;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
-import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Binary data channel handler for GATT characteristics.
  *
  * @author Vlad Kolotov
  */
-class BinaryCharacteristicHandler implements ChannelHandler, ValueListener, GovernorListener {
+class BinaryCharacteristicHandler implements ChannelHandler, ValueListener {
 
     private Logger logger = LoggerFactory.getLogger(BinaryCharacteristicHandler.class);
 
     private final BluetoothHandler handler;
     private final URL url;
     private final Set<CharacteristicAccessType> flags;
+    private ScheduledFuture<?> updateTask;
+    private CompletableFuture<byte[]> readyFuture;
 
     BinaryCharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         this.handler = handler;
@@ -38,19 +41,28 @@ class BinaryCharacteristicHandler implements ChannelHandler, ValueListener, Gove
     }
 
     @Override
-    public void init() {
+    public void init() { }
+
+    @Override
+    public void linked() {
         CharacteristicGovernor characteristicGovernor = getGovernor();
-        characteristicGovernor.addGovernorListener(this);
         if (BluetoothUtils.hasNotificationAccess(flags)) {
             characteristicGovernor.addValueListener(this);
+        } else if (BluetoothUtils.hasReadAccess(flags)) {
+            scheduleUpdateChannel();
         }
+        updateChannel();
+    }
+
+    @Override
+    public void unlinked() {
+        CharacteristicGovernor characteristicGovernor = getGovernor();
+        characteristicGovernor.removeValueListener(this);
     }
 
     @Override
     public void dispose() {
-        CharacteristicGovernor characteristicGovernor = getGovernor();
-        characteristicGovernor.removeGovernorListener(this);
-        characteristicGovernor.removeValueListener(this);
+        unlinked();
     }
 
     @Override
@@ -74,29 +86,46 @@ class BinaryCharacteristicHandler implements ChannelHandler, ValueListener, Gove
 
     @Override
     public void changed(byte[] value) {
+        updateChannel(value);
+    }
+
+    private void updateChannel(byte[] value) {
         handler.updateState(BluetoothUtils.getChannelUID(url),
                 value != null
                         ? new StringType(handler.getBluetoothContext().getParser().parse(value, 16))
                         : UnDefType.UNDEF);
     }
 
-    private CharacteristicGovernor getGovernor() {
-        return handler.getBluetoothContext().getManager().getCharacteristicGovernor(url);
+    private void scheduleUpdateChannel() {
+        if (updateTask != null) {
+            updateTask.cancel(false);
+        }
+        int updateRate = handler.getBindingConfig().getUpdateRate();
+        updateTask = handler.getScheduler().scheduleWithFixedDelay(this::updateChannel,
+                updateRate, updateRate, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void ready(boolean isReady) {
-        if (isReady && BluetoothUtils.hasReadAccess(flags)) {
-            byte[] data = getGovernor().read();
-            handler.updateState(BluetoothUtils.getChannelUID(url), new StringType(Arrays.toString(data)));
+    private void updateChannel() {
+        if (BluetoothUtils.hasReadAccess(flags) && (readyFuture == null || readyFuture.isDone())) {
+            readyFuture = getGovernor().whenReady(CharacteristicGovernor::read);
+            readyFuture.thenAccept(newData -> {
+                logger.debug("Updating binary channel: {}", url);
+                updateChannel(newData);
+            }).exceptionally(ex -> {
+                logger.warn("Error occurred while updating binary channel: {} : {}", url, ex.getMessage());
+                return null;
+            });
         }
+    }
+
+    private CharacteristicGovernor getGovernor() {
+        return handler.getBluetoothContext().getManager().getCharacteristicGovernor(url);
     }
 
     private byte[] convert(StringType command) {
         if (command == null) {
             return null;
         }
-        String data = command.toString();
-        return handler.getBluetoothContext().getParser().serialize(data, 16);
+        return handler.getBluetoothContext().getParser().serialize(command.toString(), 16);
     }
 }

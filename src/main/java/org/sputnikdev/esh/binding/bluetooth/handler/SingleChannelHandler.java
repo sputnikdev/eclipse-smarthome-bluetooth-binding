@@ -36,6 +36,10 @@ abstract class SingleChannelHandler<V, S extends State> implements ChannelHandle
         this.persistent = persistent;
     }
 
+    String getChannelID() {
+        return channelID;
+    }
+
     /**
      * Converts a channel state to a value which can be consumed by a bluetooth governor.
      * @param state a channel state

@@ -36,6 +36,16 @@ public interface ChannelHandler {
     void handleCommand(ChannelUID channelUID, Command command);
 
     /**
+     * Invoked when the channel gets linked.
+     */
+    default void linked() { }
+
+    /**
+     * Invoked when the channel gets unlinked.
+     */
+    default void unlinked() { }
+
+    /**
      * Thing handler calls this method when it gets disposed so that some resources can be released
      * (e.g. governor destroyed).
      */
