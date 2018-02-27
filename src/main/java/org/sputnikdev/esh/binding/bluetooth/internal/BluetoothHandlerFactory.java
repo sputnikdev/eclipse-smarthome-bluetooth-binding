@@ -43,6 +43,7 @@ import java.util.Map;
 public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
 
     private ServiceRegistration<BluetoothManager> bluetoothManagerServiceRegistration;
+    private ServiceRegistration<BluetoothGattParser> gattParserServiceRegistration;
     private BluetoothContext bluetoothContext;
 
     @Override
@@ -63,6 +64,8 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     protected void deactivate(ComponentContext componentContext) {
         bluetoothManagerServiceRegistration.unregister();
         bluetoothManagerServiceRegistration = null;
+        gattParserServiceRegistration.unregister();
+        gattParserServiceRegistration = null;
         bluetoothContext.getManager().dispose();
         bluetoothContext = null;
     }
@@ -136,6 +139,9 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     private void publishServices() {
         bluetoothManagerServiceRegistration =
                 bundleContext.registerService(BluetoothManager.class, bluetoothContext.getManager(), new Hashtable<>());
+        gattParserServiceRegistration =
+                bundleContext.registerService(BluetoothGattParser.class,
+                        bluetoothContext.getParser(), new Hashtable<>());
     }
 
     private void registerBluetoothObjectFactories() {
