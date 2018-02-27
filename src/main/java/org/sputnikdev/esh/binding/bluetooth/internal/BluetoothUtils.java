@@ -10,11 +10,14 @@ import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.UnDefType;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.FieldHolder;
+import org.sputnikdev.bluetooth.gattparser.spec.Field;
 import org.sputnikdev.bluetooth.manager.CombinedGovernor;
 import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
 
@@ -112,6 +115,18 @@ public final class BluetoothUtils {
             state = UnDefType.UNDEF;
         }
         return state;
+    }
+
+    public static boolean hasEnums(Field field) {
+        return field.getEnumerations() != null && field.getEnumerations().getEnumerations() != null;
+    }
+
+    public static String encodeFieldName(String fieldName) {
+        try {
+            return Base64.getEncoder().encodeToString(fieldName.getBytes("UTF-8")).replace("=", "");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static String getUID(String address) {
