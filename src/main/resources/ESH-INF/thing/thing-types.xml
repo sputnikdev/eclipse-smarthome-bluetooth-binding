@@ -100,14 +100,14 @@
         <item-type>Number</item-type>
         <label>RSSI</label>
         <description>Received signal strength indicator</description>
-        <state readOnly="true"/>
+        <state readOnly="true" pattern="%d dBm"/>
     </channel-type>
 
     <channel-type id="tx-power" advanced="true">
         <item-type>Number</item-type>
         <label>Tx Power</label>
         <description>Actual (manufacturer defined) TX power of the device. Note: some bluetooth devices do not adverise its TX power</description>
-        <state readOnly="true"/>
+        <state readOnly="true" pattern="%d dBm"/>
     </channel-type>
 
     <channel-type id="estimated-distance">
@@ -117,7 +117,7 @@
             TX power must be available for the estimation, otherwise the resulting value equals to 0.
             The calculation is based on the logarithmetic function: d = 10 ^ ((TxPower - RSSI) / 10n);
             where n is the "Signal propagation exponent" that is specifed in the adapter configuration.</description>
-        <state readOnly="true" pattern="%.2fm"/>
+        <state readOnly="true" pattern="%.2f m"/>
     </channel-type>
 
     <channel-type id="last-updated" advanced="true">
@@ -127,17 +127,10 @@
         <state readOnly="true"/>
     </channel-type>
 
-    <channel-type id="online-timeout">
-        <item-type>Number</item-type>
-        <label>Online timeout</label>
-        <description>Bluetooth devices not showing any activity are considered to be offline after exceeding this timeout (seconds)</description>
-        <state min="0" pattern="%ss"/>
-    </channel-type>
-
     <channel-type id="nearest-adapter">
         <item-type>String</item-type>
         <label>Nearest adapter</label>
-        <description>Newarest adapter address</description>
+        <description>Nearest adapter address</description>
         <state readOnly="true"/>
     </channel-type>
 
