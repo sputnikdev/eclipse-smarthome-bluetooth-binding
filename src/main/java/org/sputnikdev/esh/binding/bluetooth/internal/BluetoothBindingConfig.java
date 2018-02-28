@@ -110,7 +110,7 @@ public class BluetoothBindingConfig {
 
     /**
      * Sets a regular expression for BlueGiga adapters autodiscovery (serial ports).
-     * @return a regular expression for BlueGiga adapters autodiscovery
+     * @param serialPortRegex a regular expression for BlueGiga adapters autodiscovery
      */
     public void setSerialPortRegex(String serialPortRegex) {
         this.serialPortRegex = serialPortRegex;
