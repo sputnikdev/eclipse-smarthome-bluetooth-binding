@@ -80,6 +80,10 @@ All the binding features are fully supported by this thing. For example, a stand
 
 From the picture above you can see a list of channels that are automatically created for all discovered GATT services and characteristics of the heart rate monitor device.
 
+### Special notes for some supported devices
+
+* [Xiaomi](xiaomi.md)
+* [Bluetooth tracking tags (beacons)](tags.md)
 
 ## Presence detection
 //TODO configuration and usage info 
@@ -129,17 +133,21 @@ The following table shows some major features supported by each adapter type:
     
 ## Roadmap
 
-1. [Clean up Bluetooth Manager API so it can be shared between multiple clients](https://github.com/sputnikdev/bluetooth-manager/issues/5).
-2. [Create a new template project (bluetooth binding extension) which demonstrates how to create custom bluetooth bindings](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/16).
-3. Based on the new binding template project [implement a custom bluetooth binding for the Smart Radiator Thermostat - eQ-3](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/13).
-4. [Implement Smart Radiator Thermostat - comet-blue-eurotronic](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/14).
-5. [Implement a workaround for mobile phones (recent models of iphone and android) that dynamically allocate MAC addresses](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/17) so the such phones can be used for presence detection.
-6. Test and add support for the following devices:
-    - [Xiaomi Mijia Bluetooth Temperature Smart Humidity Sensor](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/18)
-    - [Xiaomi Mi Flora Monitor](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/19)
-    - [Elistooop Bluetooth tracking tag (beacon)](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/20)
-    - [Dehyaton Bluetooth tracking tag (beacon)](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/21)
+1. [~~Clean up Bluetooth Manager API so it can be shared between multiple clients~~](https://github.com/sputnikdev/bluetooth-manager/issues/5).
+2. Test and add support for the following devices:
+    - [~~Xiaomi Mijia Bluetooth Temperature Smart Humidity Sensor~~](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/18)
+    - [~~Xiaomi Mi Flora Monitor~~](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/19)
+    - ~~iTag Bluetooth tracking tag (beacon)~~
+    - [~~Elistooop Bluetooth tracking tag (beacon)~~](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/20)
+    - [~~Dehyaton Bluetooth tracking tag (beacon)~~](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/21)
+    - [Smart Radiator Thermostat - eQ-3](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/13)
+    - [Smart Radiator Thermostat - comet-blue-eurotronic](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/14)
+    - [Oregon RAR213HG weather station](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/27)
+    - [Playbulb candle](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/37)
+    - [Yeelight bulb](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/38)
     - [HRAEFN Bluetooth tracking tag (beacon)](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/22)
-7. [Improve indoor positioning performance and accuracy](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/23).
-8. **The ultimate goal:** provide a comprehensive and integrated environment for building custom bluetooth devices (sensors) based on the Bluetooth binding, cheap $2 bluetooth board (nrf51822) and [Mbed OS](https://www.mbed.com/en/platform/mbed-os/). This should bring an easy way to build your own wireless sensors for a very affordable price.  
+3. [Implement a workaround for mobile phones (recent models of iphone and android) that dynamically allocate MAC addresses](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/17) so the such phones can be used for presence detection.
+4. [Improve indoor positioning performance and accuracy](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/23).
+5. [Create a new template project (bluetooth binding extension) which demonstrates how to create custom bluetooth bindings](https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/issues/16).
+6. **The ultimate goal:** provide a comprehensive and integrated environment for building custom bluetooth devices (sensors) based on the Bluetooth binding, cheap $2 bluetooth board (nrf51822) and [Mbed OS](https://www.mbed.com/en/platform/mbed-os/). This should bring an easy way to build your own wireless sensors for a very affordable price.  
 
