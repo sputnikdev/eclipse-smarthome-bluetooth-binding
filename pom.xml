@@ -239,7 +239,7 @@
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-gatt-parser</artifactId>
-            <version>1.7</version>
+            <version>1.8.1</version>
         </dependency>
 
         <dependency>
