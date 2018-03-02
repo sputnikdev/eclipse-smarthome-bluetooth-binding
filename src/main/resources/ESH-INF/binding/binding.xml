@@ -51,7 +51,7 @@
         <parameter name="initialConnectionControl" type="boolean">
             <label>Initial connection control</label>
             <description>If enabled, connection is kept on for newly added bluetooth devices, otherwise off. Can be customized for each bluetooth device.</description>
-            <default>true</default>
+            <default>false</default>
         </parameter>
         <parameter name="serialPortRegex" type="text">
             <label>Regular expression for BlueGiga adapters autodiscovery (serial ports)</label>
@@ -67,13 +67,13 @@
                     <li>Default regular expression is to match nothing: (?!)</li>
                 </ul>
             ]]></description>
-            <options>
-                <option value="((/dev/ttyACM)[0-9]{1,3})|(/dev/tty.(usbmodem).*)|((COM)[0-9]{1,3})">All ports</option>
-                <option value="(?!)">Nothing</option>
-            </options>
-            <limitToOptions>false</limitToOptions>
+            <!-- commented because limitToOptions and options does not play well together -->
+            <!--<options>-->
+                <!--<option value="((/dev/ttyACM)[0-9]{1,3})|(/dev/tty.(usbmodem).*)|((COM)[0-9]{1,3})">All ports</option>-->
+                <!--<option value="(?!)">Nothing</option>-->
+            <!--</options>-->
+            <!--<limitToOptions>false</limitToOptions>-->
             <default>(?!)</default>
-            <verify>true</verify>
         </parameter>
         <parameter name="extensionFolder" type="text">
             <label>GATT services and characteristics extension folder</label>
