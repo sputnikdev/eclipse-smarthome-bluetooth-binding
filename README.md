@@ -85,6 +85,14 @@ From the picture above you can see a list of channels that are automatically cre
 * [Xiaomi](xiaomi.md)
 * [Bluetooth tracking tags (beacons)](tags.md)
 
+### Extending the binding
+
+In order to add support for new devices, the binding can be extended in several ways - declarative and programmatic:
+
+* [Declarative](gatt-extensions.md)
+* //TODO programmatic
+ 
+
 ## Presence detection
 //TODO configuration and usage info 
 
