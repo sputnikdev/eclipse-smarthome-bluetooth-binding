@@ -96,7 +96,7 @@
         <state readOnly="true"/>
     </channel-type>
 
-    <channel-type id="rssi">
+    <channel-type id="rssi" advanced="true">
         <item-type>Number</item-type>
         <label>RSSI</label>
         <description>Received signal strength indicator</description>
@@ -110,7 +110,7 @@
         <state readOnly="true" pattern="%d dBm"/>
     </channel-type>
 
-    <channel-type id="estimated-distance">
+    <channel-type id="estimated-distance" advanced="true">
         <item-type>Number</item-type>
         <label>Estimated distance</label>
         <description>Estimated distance between this device and the adapter. Either measured or actual
@@ -120,7 +120,7 @@
         <state readOnly="true" pattern="%.2f m"/>
     </channel-type>
 
-    <channel-type id="last-updated" advanced="true">
+    <channel-type id="last-updated">
         <item-type>DateTime</item-type>
         <label>Last updated</label>
         <description>Date and time of the last activity</description>
