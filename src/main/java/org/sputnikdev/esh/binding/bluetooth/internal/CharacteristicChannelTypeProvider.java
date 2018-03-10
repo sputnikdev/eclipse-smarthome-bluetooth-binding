@@ -13,19 +13,18 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.gattparser.spec.Field;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
 import java.math.BigDecimal;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +67,12 @@ public class CharacteristicChannelTypeProvider implements ChannelTypeProvider {
         return null;
     }
 
+    /**
+     * Builds a new channel type for a channel type UID.
+     * See {@link org.sputnikdev.esh.binding.bluetooth.handler.BluetoothChannelBuilder#buildChannels(URL, List, boolean, boolean)}
+     * @param channelTypeUID channel type UID
+     * @return new channel type
+     */
     private ChannelType buildChannelType(ChannelTypeUID channelTypeUID) {
         // characteristic-advncd-readable-00002a04-0000-1000-8000-00805f9b34fb-Battery_Level
         String channelID = channelTypeUID.getId();

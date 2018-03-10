@@ -19,10 +19,13 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothBindingConfig;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 
 /**
  * A root thing handler for all bluetooth handlers. Defines overall structure and provides some useful methods
@@ -36,7 +39,8 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     private final BluetoothContext bluetoothContext;
     private final URL url;
-    private final Map<ChannelUID, ChannelHandler> channelHandlers = new ConcurrentHashMap<>();
+    private final Map<ChannelHandler, Set<ChannelUID>> channelHandlers = new ConcurrentHashMap<>();
+    private final Object updateLock = new Object();
 
     BluetoothHandler(Thing thing, BluetoothContext bluetoothContext) {
         super(thing);
@@ -52,7 +56,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        channelHandlers.values().forEach(channel -> channel.handleCommand(channelUID, command));
+        findHandler(channelUID, handler -> handler.handleCommand(channelUID, command));
     }
 
     @Override
@@ -78,20 +82,14 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
 
     @Override
     public void channelLinked(ChannelUID channelUID) {
-        channelHandlers.computeIfPresent(channelUID, (uid, handler) -> {
-            handler.linked();
-            return handler;
-        });
+        findHandler(channelUID, ChannelHandler::linked);
         super.channelLinked(channelUID);
     }
 
     @Override
     public void channelUnlinked(ChannelUID channelUID) {
         super.channelUnlinked(channelUID);
-        channelHandlers.computeIfPresent(channelUID, (uid, handler) -> {
-            handler.unlinked();
-            return handler;
-        });
+        findHandler(channelUID, ChannelHandler::unlinked);
     }
 
     @Override
@@ -143,25 +141,42 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         return bluetoothContext;
     }
 
-    protected void addChannelHandler(ChannelUID channelUID, ChannelHandler channelHandler) {
-        channelHandlers.computeIfAbsent(channelUID, uid -> {
+    protected void addChannelHandler(ChannelHandler channelHandler) {
+        channelHandlers.computeIfAbsent(channelHandler, handler -> new HashSet<>());
+    }
+
+    protected void registerChannel(ChannelUID channelUID, ChannelHandler channelHandler) {
+        channelHandlers.computeIfAbsent(channelHandler, handler -> {
             if (isLinked(channelUID.getIdWithoutGroup())) {
                 channelHandler.linked();
             }
-            return channelHandler;
-        });
+            return new HashSet<>();
+        }).add(channelUID);
     }
 
     protected void addChannelHandlers(List<SingleChannelHandler> handlers) {
         handlers.forEach(handler -> {
             ChannelUID channelUID = new ChannelUID(thing.getUID(), handler.getChannelID());
-            channelHandlers.computeIfAbsent(channelUID, uid -> {
-                if (isLinked(channelUID.getIdWithoutGroup())) {
-                    handler.linked();
-                }
-                return handler;
-            });
+            registerChannel(channelUID, handler);
         });
+    }
+
+    protected void updateThingWithChannels(List<Channel> channels) {
+        if (!channels.isEmpty()) {
+            logger.debug("Updating thing with channels: {} / {}", url, channels.size());
+            synchronized (updateLock) {
+                ThingBuilder thingBuilder = editThing();
+                channels.forEach(channel -> {
+                    String uid = channel.getUID().getIdWithoutGroup();
+                    if (getChannel(uid) == null) {
+                        logger.debug("Channel to be added: {} {}", url, uid);
+                        thingBuilder.withChannel(channel);
+                    }
+                });
+                logger.debug("Updating thing with new channels: {} / {}", url, channels.size());
+                updateThing(thingBuilder.build());
+            }
+        }
     }
 
     protected URL getURL() {
@@ -194,12 +209,17 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     }
 
     private void initChannelHandlers() {
-        channelHandlers.values().forEach(ChannelHandler::init);
+        channelHandlers.keySet().forEach(ChannelHandler::init);
     }
 
     private void disposeChannelHandlers() {
-        channelHandlers.values().forEach(ChannelHandler::dispose);
+        channelHandlers.keySet().forEach(ChannelHandler::dispose);
         channelHandlers.clear();
+    }
+
+    private void findHandler(ChannelUID channelUID, Consumer<ChannelHandler> consumer) {
+        channelHandlers.entrySet().stream().filter(entry -> entry.getValue().contains(channelUID))
+                .findAny().ifPresent(entry -> consumer.accept(entry.getKey()));
     }
 
 }

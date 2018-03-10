@@ -2,10 +2,12 @@ package org.sputnikdev.esh.binding.bluetooth.internal;
 
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Bluetooth binding configuration.
@@ -14,14 +16,31 @@ import java.util.List;
  */
 public class BluetoothBindingConfig {
 
+    public enum GattParsingStrategy {
+        /**
+         * Human-readable channels are created for only recognised attributes,
+         * all other "unknown" attributes are ignored.
+         */
+        RECOGNISED_ONLY,
+        /**
+         * Human-readable channels are created for recognised attributes, binary channels are created for
+         * all other "unknown" attributes.
+         */
+        UNRECOGNISED_AS_BINARY,
+        /**
+         * All channels are binary.
+         */
+        ALL_BINARY
+    }
+
     private String extensionFolder = BluetoothBindingConstants.DEFAULT_EXTENSION_FOLDER;
     private int updateRate = BluetoothBindingConstants.DEFAULT_UPDATE_RATE;
     private int initialOnlineTimeout = BluetoothBindingConstants.DEFAULT_ONLINE_TIMEOUT;
     private boolean initialConnectionControl = BluetoothBindingConstants.DEFAULT_CONNECTION_CONTROL;
     private String serialPortRegex;
     private boolean combinedDevicesEnabled = true;
-    private List<String> advancedGattServices = new ArrayList<>();
-    private boolean discoverUnknownAttributes;
+    private Set<String> advancedGattServices = new HashSet<>();
+    private String gattParsingStrategy = GattParsingStrategy.RECOGNISED_ONLY.name();
 
     public BluetoothBindingConfig() {
         advancedGattServices.addAll(Arrays.asList("00001800-0000-1000-8000-00805f9b34fb",
@@ -121,7 +140,7 @@ public class BluetoothBindingConfig {
      * No items/channels will be automatically created for these services.
      * @return list of GATT service UUIDs
      */
-    public List<String> getAdvancedGattServices() {
+    public Set<String> getAdvancedGattServices() {
         return advancedGattServices;
     }
 
@@ -131,15 +150,46 @@ public class BluetoothBindingConfig {
      * @param advancedGattServices list of GATT service UUIDs
      */
     public void setAdvancedGattServices(List<String> advancedGattServices) {
-        this.advancedGattServices = Collections.unmodifiableList(advancedGattServices);
+        this.advancedGattServices = Collections.unmodifiableSet(
+                advancedGattServices.stream().map(String::trim).map(String::toLowerCase).collect(Collectors.toSet()));
     }
 
-    public boolean isDiscoverUnknownAttributes() {
-        return discoverUnknownAttributes;
+    /**
+     * Returns GATT services and characteristics parsing strategy. Controls how recognised and unrecognised
+     * GATT attributes are handled.
+     * @return GATT services and characteristics parsing strategy
+     */
+    public String getGattParsingStrategy() {
+        return gattParsingStrategy;
     }
 
-    public void setDiscoverUnknownAttributes(boolean discoverUnknownAttributes) {
-        this.discoverUnknownAttributes = discoverUnknownAttributes;
+    /**
+     * Returns GATT services and characteristics parsing strategy formatted as GattParsingStrategy enum.
+     * @return GATT services and characteristics parsing strategy
+     */
+    public GattParsingStrategy getGattStrategy() {
+        return GattParsingStrategy.valueOf(gattParsingStrategy);
+    }
+
+    public boolean discoverUnknown() {
+        return GattParsingStrategy.valueOf(gattParsingStrategy) != GattParsingStrategy.RECOGNISED_ONLY;
+    }
+
+    public boolean discoverRecognisedOnly() {
+        return GattParsingStrategy.valueOf(gattParsingStrategy) == GattParsingStrategy.RECOGNISED_ONLY;
+    }
+
+    public boolean discoverBinaryOnly() {
+        return GattParsingStrategy.valueOf(gattParsingStrategy) == GattParsingStrategy.ALL_BINARY;
+    }
+
+    /**
+     * Sets GATT services and characteristics parsing strategy. Controls how recognised and unrecognised
+     * GATT attributes are handled.
+     * @param gattParsingStrategy GATT services and characteristics parsing strategy
+     */
+    public void setGattParsingStrategy(String gattParsingStrategy) {
+        this.gattParsingStrategy = gattParsingStrategy;
     }
 
     /**
@@ -161,4 +211,5 @@ public class BluetoothBindingConfig {
     public void setCombinedDevicesEnabled(boolean combinedDevicesEnabled) {
         this.combinedDevicesEnabled = combinedDevicesEnabled;
     }
+
 }

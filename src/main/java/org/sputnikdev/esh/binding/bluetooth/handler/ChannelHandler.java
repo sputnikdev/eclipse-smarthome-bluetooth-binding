@@ -33,7 +33,7 @@ public interface ChannelHandler {
      * @param channelUID channel UID
      * @param command a command or a new state
      */
-    void handleCommand(ChannelUID channelUID, Command command);
+    default void handleCommand(ChannelUID channelUID, Command command) { }
 
     /**
      * Invoked when the channel gets linked.

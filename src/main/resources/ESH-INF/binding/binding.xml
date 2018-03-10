@@ -94,16 +94,24 @@
             <limitToOptions>false</limitToOptions>
             <advanced>true</advanced>
         </parameter>
-        <parameter name="discoverUnknownAttributes" type="boolean">
-            <label>Discover unknown GATT services and characteristics</label>
-            <description>When enabled, all unknown bluetooth device GATT services and characteristics are discovered and corresponding thing channels get created.
-                Created channels for the such characteristics will contain RAW unprocessed data that could possibly be consumed by a custom transformation in order to extract some meaningful bluetooth device values/state.
-                Please note, this is an experimental feature that require some deep knowledge in the BLE technology, therefore this feature is used mainly for debugging purposes (adding device support through creating custom GATT specifications,
-                see the "GATT services and characteristics extension folder" binding setting).</description>
-            <required>false</required>
+        <parameter name="gattParsingStrategy" type="text">
+            <label>GATT services and characteristics parsing strategy</label>
+            <description><![CDATA[Controls how recognised and unrecognised GATT attributes are handled:
+                <ul>
+                    <li><b>Recognised only (Default value)</b> - Human-readable channels are created for only recognised attributes, all other "unknown" attributes are ignored</li>
+                    <li><b>Recognised + unrecognised as binary</b> - Human-readable channels are created for recognised attributes, binary channels are created for all other "unknown" attributes</li>
+                    <li><b>All as binary</b> - All channels are binary</li>
+                </ul>
+            ]]></description>
+            <options>
+                <option value="RECOGNISED_ONLY">Recognised only</option>
+                <option value="UNRECOGNISED_AS_BINARY">Recognised + unrecognised as binary</option>
+                <option value="ALL_BINARY">All as binary</option>
+            </options>
+            <limitToOptions>true</limitToOptions>
             <advanced>true</advanced>
-            <default>false</default>
+            <default>RECOGNISED_ONLY</default>
+            <required>true</required>
         </parameter>
     </config-description>
-
 </binding:binding>

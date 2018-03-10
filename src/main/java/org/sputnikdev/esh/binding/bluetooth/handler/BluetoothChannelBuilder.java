@@ -7,21 +7,14 @@ import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
-import org.sputnikdev.bluetooth.gattparser.spec.Characteristic;
 import org.sputnikdev.bluetooth.gattparser.spec.Field;
-import org.sputnikdev.bluetooth.manager.GattCharacteristic;
-import org.sputnikdev.bluetooth.manager.GattService;
-import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -33,6 +26,7 @@ import java.util.stream.Collectors;
 class BluetoothChannelBuilder {
 
     private Logger logger = LoggerFactory.getLogger(BluetoothChannelBuilder.class);
+    private static final String CHANNEL_TYPE_NAME_PATTERN = "characteristic-%s-%s-%s-%s";
 
     private final BluetoothHandler handler;
 
@@ -40,113 +34,31 @@ class BluetoothChannelBuilder {
         this.handler = handler;
     }
 
-    protected Map<ChannelHandler, List<Channel>> buildServicesChannels(Set<URL> urls) {
-        Map<ChannelHandler, List<Channel>> result = new HashMap<>();
 
-        for (URL url : urls) {
-            logger.info("Handling a new service data url: {}", url);
-            // converting service data URL to look like it is a characteristic
-            URL virtualURL = url.copyWithCharacteristic(url.getServiceUUID());
-            boolean isKnownCharacteristic = handler.getBluetoothContext().getParser().isKnownCharacteristic(
-                    virtualURL.getCharacteristicUUID());
-            if (!handler.getBindingConfig().isDiscoverUnknownAttributes() && !isKnownCharacteristic) {
-                logger.info("Skipping unknown service data: {} ", virtualURL);
+    List<Channel> buildChannels(URL url, List<Field> fields, boolean advanced, boolean readOnly) {
+        List<Channel> channels = new ArrayList<>();
+
+        Map<String, List<Field>> fieldsMapping = fields.stream().collect(Collectors.groupingBy(Field::getName));
+
+        String label = null;
+        // check if the characteristic has only on field, if so use its name as label
+        if (handler.getParser().getFields(url.getCharacteristicUUID()).size() == 1) {
+            label = handler.getParser().getCharacteristic(url.getCharacteristicUUID()).getName();
+        }
+
+        for (List<Field> fieldList : fieldsMapping.values()) {
+            if (fieldList.size() > 1) {
+                logger.warn("Multiple fields with the same name found: {} / {}. Skipping these fields.",
+                        url, fieldList.get(0).getName());
                 continue;
             }
-
-            logger.info("Creating channels for service data: {}", virtualURL);
-
-            if (isKnownCharacteristic) {
-                result.put(new ServiceHandler(handler, virtualURL), buildServiceChannels(virtualURL));
-            } else {
-                result.put(new ServiceHandler(handler, virtualURL),
-                        Arrays.asList(buildCharacteristicBinaryChannel(virtualURL, false, true)));
-            }
-        }
-
-        return result;
-    }
-
-    protected Map<ChannelHandler, List<Channel>> buildCharacteristicsChannels(List<GattService> services) {
-        Map<ChannelHandler, List<Channel>> result = new HashMap<>();
-        List<String> advancedServices = handler.getBindingConfig().getAdvancedGattServices();
-        for (GattService service : services) {
-            boolean advanced = advancedServices != null && advancedServices.contains(service.getURL().getServiceUUID());
-            for (GattCharacteristic characteristic : service.getCharacteristics()) {
-                logger.info("Handling a new characteristic: {}", characteristic.getURL());
-                result.putAll(buildChannels(characteristic, advanced));
-            }
-        }
-        return result;
-    }
-
-    private List<Channel> buildServiceChannels(URL url) {
-        List<Channel> channels = new ArrayList<>();
-        for (Field field : handler.getParser().getFields(url.getCharacteristicUUID())) {
-            if (!field.isFlagField()
-                    && (!field.isUnknown() || handler.getBindingConfig().isDiscoverUnknownAttributes())) {
-                channels.add(buildFieldChannel(url, field, false, true));
-            }
+            Field field = fieldList.get(0);
+            channels.add(buildFieldChannel(url, field, label == null ? field.getName() : label, advanced, readOnly));
         }
         return channels;
     }
 
-    private Map<ChannelHandler, List<Channel>> buildChannels(GattCharacteristic characteristic, boolean advanced) {
-        Map<ChannelHandler, List<Channel>> result = new HashMap<>();
-        boolean isKnownCharacteristic = handler.getBluetoothContext().getParser().isKnownCharacteristic(
-                characteristic.getURL().getCharacteristicUUID());
-        if (!handler.getBindingConfig().isDiscoverUnknownAttributes() && !isKnownCharacteristic) {
-            logger.info("Skipping unknown characteristic: {} ", characteristic.getURL());
-            return Collections.emptyMap();
-        }
-
-        Set<CharacteristicAccessType> flags = characteristic.getFlags();
-        boolean readAccess = BluetoothUtils.hasReadAccess(flags)
-                || BluetoothUtils.hasNotificationAccess(flags);
-        boolean writeAccess = BluetoothUtils.hasWriteAccess(flags);
-
-        if (!readAccess && !writeAccess) {
-            logger.info("The characteristic {} is not supported as it cannot be read, subscribed for "
-                            + "notification or written; flags: {} ", characteristic.getURL(),
-                    characteristic.getFlags());
-            return Collections.emptyMap();
-        }
-
-        if (isKnownCharacteristic) {
-            logger.info("Creating channels for characteristic: {}", characteristic.getURL());
-            result.put(new CharacteristicHandler(handler, characteristic.getURL(), flags),
-                    buildChannels(characteristic.getURL(), advanced, !writeAccess));
-        } else {
-            result.put(new BinaryCharacteristicHandler(handler, characteristic.getURL(), flags),
-                    Collections.singletonList(buildCharacteristicBinaryChannel(
-                            characteristic.getURL(), advanced, !writeAccess)));
-        }
-        return result;
-    }
-
-    private List<Channel> buildChannels(URL characteristicURL, boolean advanced, boolean readOnly) {
-        List<Channel> channels = new ArrayList<>();
-
-        Map<String, List<Field>> fieldsMapping =
-                handler.getParser().getFields(characteristicURL.getCharacteristicUUID()).stream()
-                        .collect(Collectors.groupingBy(Field::getName));
-
-        for (List<Field> fields : fieldsMapping.values()) {
-            if (fields.size() > 1) {
-                logger.warn("Multiple fields with the same name found: {} / {}. Skipping these fields.",
-                        characteristicURL, fields.get(0).getName());
-                return Collections.emptyList();
-            }
-            Field field = fields.get(0);
-            if (!field.isFlagField()
-                    && !field.isUnknown() || handler.getBindingConfig().isDiscoverUnknownAttributes()) {
-                channels.add(buildFieldChannel(characteristicURL, field, advanced, readOnly));
-            }
-        }
-        return channels;
-    }
-
-    protected Channel buildCharacteristicBinaryChannel(URL characteristicURL, boolean advanced, boolean readOnly) {
+    protected Channel buildBinaryChannel(URL characteristicURL, boolean advanced, boolean readOnly) {
         ChannelUID channelUID = new ChannelUID(handler.getThing().getUID(),
                 BluetoothUtils.getChannelUID(characteristicURL));
 
@@ -159,13 +71,14 @@ class BluetoothChannelBuilder {
                 .build();
     }
 
-    protected Channel buildFieldChannel(URL characteristicURL, Field field, boolean advanced, boolean readOnly) {
+    private Channel buildFieldChannel(URL characteristicURL, Field field, String label,
+                                      boolean advanced, boolean readOnly) {
         URL channelURL = characteristicURL.copyWithField(field.getName());
         logger.debug("Building a new channel for a field: {}", channelURL);
 
         ChannelUID channelUID = new ChannelUID(handler.getThing().getUID(), BluetoothUtils.getChannelUID(channelURL));
 
-        String channelType = String.format("characteristic-%s-%s-%s-%s",
+        String channelType = String.format(CHANNEL_TYPE_NAME_PATTERN,
                 advanced ? "advncd" : "simple",
                 readOnly ? "readable" : "writable",
                 characteristicURL.getCharacteristicUUID(),
@@ -175,11 +88,11 @@ class BluetoothChannelBuilder {
         return ChannelBuilder.create(channelUID, getAcceptedItemType(field))
                 .withType(channelTypeUID)
                 .withProperties(getFieldProperties(field))
-                .withLabel(getChannelLabel(channelURL.getCharacteristicUUID(), field))
+                .withLabel(label)
                 .build();
     }
 
-    private String getChannelType(boolean advanced, boolean readOnly) {
+    private static String getChannelType(boolean advanced, boolean readOnly) {
         // making channel type that should match one of channel types from the "thing-types.xml" config file, these are:
         // characteristic-advanced-readonly-field
         // characteristic-advanced-editable-field
@@ -190,19 +103,10 @@ class BluetoothChannelBuilder {
                 advanced ? "-advanced" : "", readOnly ? "-readonly" : "-editable");
     }
 
-    private Map<String, String> getFieldProperties(Field field) {
+    private static Map<String, String> getFieldProperties(Field field) {
         Map<String, String> properties = new HashMap<>();
         properties.put(BluetoothBindingConstants.PROPERTY_FIELD_NAME, field.getName());
         return properties;
-    }
-
-    private String getChannelLabel(String characteristicUUID, Field field) {
-        Characteristic spec = handler.getParser().getCharacteristic(characteristicUUID);
-        if (spec.getValue().getFields().size() > 1) {
-            return spec.getName() + "/" + field.getName();
-        } else {
-            return spec.getName();
-        }
     }
 
     private String getAcceptedItemType(Field field) {

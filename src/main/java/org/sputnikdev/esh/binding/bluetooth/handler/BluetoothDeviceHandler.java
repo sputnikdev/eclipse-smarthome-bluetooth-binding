@@ -18,6 +18,7 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothContext;
 import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,6 +42,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     private boolean servicesResolved;
     private final Set<URL> advertisedServices = new HashSet<>();
     private final ReentrantLock advertisedServicesLock = new ReentrantLock();
+    private final ReentrantLock serviceResolvedLock = new ReentrantLock();
 
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
             BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED) {
@@ -120,29 +122,25 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     @Override
     public void servicesResolved(List<GattService> gattServices) {
-        if (!servicesResolved) {
-            ThingBuilder builder = editThing();
-
-            logger.info("Building channels for services: {}", gattServices.size());
-            Map<ChannelHandler, List<Channel>> channels =
-                    new BluetoothChannelBuilder(this).buildCharacteristicsChannels(gattServices);
-
-            for (Map.Entry<ChannelHandler, List<Channel>> entry : channels.entrySet()) {
-                entry.getValue().forEach(channel -> addChannelHandler(channel.getUID(), entry.getKey()));
-                updateChannels(builder, entry.getValue());
+        if (!servicesResolved && serviceResolvedLock.tryLock()) {
+            try {
+                logger.info("Building channels for services: {}", gattServices.size());
+                List<Channel> channels = new ArrayList<>();
+                gattServices.stream()
+                        .flatMap(service -> service.getCharacteristics().stream())
+                        .filter(characteristic -> checkCharacteristicHandlerNeeded(characteristic.getURL()))
+                        .map(characteristic -> new CharacteristicHandler(
+                                this, characteristic.getURL(), characteristic.getFlags()))
+                        .forEach(handler -> {
+                            List<Channel> chnnls = handler.buildChannels();
+                            channels.addAll(chnnls);
+                            chnnls.forEach(channel -> registerChannel(channel.getUID(), handler));
+                        });
+                updateThingWithChannels(channels);
+                servicesResolved = true;
+            } finally {
+                serviceResolvedLock.unlock();
             }
-
-            logger.info("Updating the thing with new channels");
-            updateThing(builder.build());
-
-            for (ChannelHandler channelHandler : channels.keySet()) {
-                try {
-                    channelHandler.init();
-                } catch (Exception ex) {
-                    logger.error("Could not update channel handler: {}", channelHandler.getURL(), ex);
-                }
-            }
-            servicesResolved = true;
         }
     }
 
@@ -154,7 +152,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
                 try {
                     serviceData.entrySet().stream()
                             .filter(entry -> checkServiceDataHandlerNeeded(entry.getKey())).forEach(entry -> {
-                                buildHandler(entry.getKey(), entry.getValue());
+                                buildServiceHandler(entry.getKey(), entry.getValue());
                             });
                     advertisedServices.addAll(channelsToBuild);
                 } finally {
@@ -188,18 +186,23 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
         }
     }
 
-    private boolean checkServiceDataHandlerNeeded(URL url) {
-        return !advertisedServices.contains(url)
-                && (getParser().isKnownCharacteristic(url.getServiceUUID())
-                || getBindingConfig().isDiscoverUnknownAttributes());
+    private boolean checkCharacteristicHandlerNeeded(URL url) {
+        return !getBindingConfig().getAdvancedGattServices().contains(url.getServiceUUID().toLowerCase())
+                && (getParser().isKnownCharacteristic(url.getCharacteristicUUID())
+                        || getBindingConfig().discoverUnknown());
     }
 
-    private void buildHandler(URL url, byte[] data) {
+    private boolean checkServiceDataHandlerNeeded(URL url) {
+        return !getBindingConfig().getAdvancedGattServices().contains(url.getServiceUUID().toLowerCase())
+                && !advertisedServices.contains(url)
+                && (getParser().isKnownCharacteristic(url.getServiceUUID()) || getBindingConfig().discoverUnknown());
+    }
+
+    private void buildServiceHandler(URL url, byte[] data) {
         logger.debug("Building a new handler for service data url: {}", url);
         URL virtualURL = url.copyWithCharacteristic(url.getServiceUUID());
         ServiceHandler serviceHandler = new ServiceHandler(this, virtualURL);
-        addChannelHandler(serviceHandler.getChannelUID(), serviceHandler);
-        serviceHandler.init(data);
+        serviceHandler.dataChanged(data, true);
     }
 
 }

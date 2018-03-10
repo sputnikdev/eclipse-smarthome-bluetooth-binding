@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.manager.NotReadyException;
 
+import java.util.Objects;
+
 /**
  * A base class that is used for mapping a basic governor state/control to a corresponding thing channel.
  * Bluetooth thing handlers are supposed to define a list of single channel handlers in a declarative manner
@@ -119,6 +121,23 @@ abstract class SingleChannelHandler<V, S extends State> implements ChannelHandle
         } catch (NotReadyException ex) {
             logger.info("Device is not ready {}. Thing channel could not be initialised.", getURL());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SingleChannelHandler)) {
+            return false;
+        }
+        SingleChannelHandler<?, ?> that = (SingleChannelHandler<?, ?>) o;
+        return Objects.equals(channelID, that.channelID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(channelID);
     }
 
     /**

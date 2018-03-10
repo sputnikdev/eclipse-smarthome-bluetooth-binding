@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
-import org.sputnikdev.bluetooth.gattparser.CharacteristicFormatException;
 import org.sputnikdev.bluetooth.gattparser.FieldHolder;
 import org.sputnikdev.bluetooth.gattparser.GattRequest;
 import org.sputnikdev.bluetooth.manager.CharacteristicGovernor;
@@ -22,9 +21,7 @@ import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
@@ -36,68 +33,41 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Vlad Kolotov
  */
-class CharacteristicHandler implements ChannelHandler, ValueListener {
+class CharacteristicHandler extends GattChannelHandler implements ValueListener {
 
     private Logger logger = LoggerFactory.getLogger(CharacteristicHandler.class);
 
-    private final BluetoothHandler handler;
-    private final URL url;
     private final Set<CharacteristicAccessType> flags;
     private byte[] data;
     private ScheduledFuture<?> updateTask;
     private CompletableFuture<byte[]> readyFuture;
-    private boolean linked;
 
     CharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
-        this.handler = handler;
-        url = characteristicURL;
+        super(handler, characteristicURL, !BluetoothUtils.hasWriteAccess(flags));
         this.flags = new HashSet<>(flags);
     }
 
     @Override
-    public void init() { }
-
-    @Override
-    public void linked() {
-        synchronized (url) {
-            if (!linked) {
-                CharacteristicGovernor characteristicGovernor = getGovernor();
-                if (BluetoothUtils.hasNotificationAccess(flags)) {
-                    characteristicGovernor.addValueListener(this);
-                } else if (BluetoothUtils.hasReadAccess(flags)) {
-                    scheduleUpdateChannels();
-                }
-                updateChannels();
-                linked = true;
-            }
+    public void attach() {
+        CharacteristicGovernor characteristicGovernor = getGovernor();
+        if (BluetoothUtils.hasNotificationAccess(flags)) {
+            characteristicGovernor.addValueListener(this);
+        } else if (BluetoothUtils.hasReadAccess(flags)) {
+            updateChannels();
+            scheduleUpdateChannels();
         }
     }
 
     @Override
-    public void unlinked() {
-        synchronized (url) {
-            if (linked) {
-                if (updateTask != null) {
-                    updateTask.cancel(true);
-                }
-                if (readyFuture != null) {
-                    readyFuture.cancel(true);
-                }
-                CharacteristicGovernor characteristicGovernor = getGovernor();
-                characteristicGovernor.removeValueListener(this);
-                linked = false;
-            }
+    public void detach() {
+        if (updateTask != null) {
+            updateTask.cancel(true);
         }
-    }
-
-    @Override
-    public void dispose() {
-        unlinked();
-    }
-
-    @Override
-    public URL getURL() {
-        return url;
+        if (readyFuture != null) {
+            readyFuture.cancel(true);
+        }
+        CharacteristicGovernor characteristicGovernor = getGovernor();
+        characteristicGovernor.removeValueListener(this);
     }
 
     @Override
@@ -108,17 +78,26 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
             return;
         }
         if (command instanceof State) {
-
             State state = (State) command;
-            String fieldName = getFieldName(channelUID);
-            if (fieldName != null) {
-                try {
-                    updateThing(fieldName, state);
-                } catch (Exception ex) {
-                    logger.warn("Could not update bluetooth device: {}", ex.getMessage());
+            try {
+                if (binary) {
+                    updateThing(state);
+                } else {
+                    String fieldName = getFieldName(channelUID);
+                    if (fieldName != null) {
+                        updateThing(fieldName, state);
+                    }
                 }
+            } catch (Exception ex) {
+                logger.warn("Could not update bluetooth device: {}", ex.getMessage());
             }
         }
+    }
+
+    @Override
+    public void changed(byte[] value) {
+        data = value;
+        dataChanged(value, false);
     }
 
     private String getFieldName(ChannelUID channelUID) {
@@ -133,25 +112,13 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
         return null;
     }
 
-    @Override
-    public void changed(byte[] value) {
-        data = value;
-        Map<String, FieldHolder> holders = parseCharacteristic(data);
-        for (FieldHolder holder : holders.values()) {
-            updateState(getChannel(holder), holder);
-        }
-    }
-
     private void updateChannels() {
-        if (BluetoothUtils.hasReadAccess(flags) && (readyFuture == null || readyFuture.isDone())) {
+        if (readyFuture == null || readyFuture.isDone()) {
             readyFuture = getGovernor().whenReady(CharacteristicGovernor::read);
             readyFuture.thenAccept(newData -> {
                 logger.debug("Updating channels: {}", url);
                 data = newData;
-                Map<String, FieldHolder> holders = parseCharacteristic(data);
-                for (FieldHolder holder : holders.values()) {
-                    updateState(getChannel(holder), holder);
-                }
+                dataChanged(newData, false);
             }).exceptionally(ex -> {
                 logger.warn("Error occurred while updating channels: {} : {}", url, ex.getMessage());
                 return null;
@@ -192,21 +159,16 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
         }
     }
 
-    private Map<String, FieldHolder> parseCharacteristic(byte[] value) {
-        if (value.length == 0) {
-            logger.warn("Characteristic value is empty: {}", url);
-            return Collections.emptyMap();
-        }
-        try {
-            return handler.getBluetoothContext().getParser().parse(url.getCharacteristicUUID(), value).getHolders();
-        } catch (CharacteristicFormatException ex) {
-            logger.warn("Could not parse characteristic: {}. Ignoring it: {}", url, ex.getMessage());
-            return Collections.emptyMap();
-        }
-    }
+    private void updateThing(State state) {
+        if (BluetoothUtils.hasWriteAccess(flags)) {
+            BluetoothGattParser gattParser = handler.getParser();
 
-    private void updateState(Channel channel, FieldHolder holder) {
-        handler.updateState(channel.getUID(), BluetoothUtils.convert(holder));
+            data = gattParser.serialize(state.toString(), 16);
+            if (!getGovernor().write(data)) {
+                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Could not write data to characteristic: " + url);
+            }
+        }
     }
 
     private static void updateHolder(FieldHolder holder, State state) {
@@ -226,11 +188,6 @@ class CharacteristicHandler implements ChannelHandler, ValueListener {
 
     private static State convert(State state, Class<? extends State> typeClass) {
         return state.as(typeClass);
-    }
-
-    private Channel getChannel(FieldHolder fieldHolder) {
-        return handler.getThing().getChannel(
-                BluetoothUtils.getChannelUID(url.copyWithField(fieldHolder.getField().getName())));
     }
 
     private CharacteristicGovernor getGovernor() {
