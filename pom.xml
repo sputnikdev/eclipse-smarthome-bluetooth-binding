@@ -169,25 +169,25 @@
         <dependency>
             <groupId>org.eclipse.smarthome.config</groupId>
             <artifactId>org.eclipse.smarthome.config.core</artifactId>
-            <version>0.9.0.b6</version>
+            <version>0.9.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.smarthome.config</groupId>
             <artifactId>org.eclipse.smarthome.config.discovery</artifactId>
-            <version>0.9.0.b6</version>
+            <version>0.9.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.smarthome.core</groupId>
             <artifactId>org.eclipse.smarthome.core</artifactId>
-            <version>0.9.0.b6</version>
+            <version>0.9.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.smarthome.core</groupId>
             <artifactId>org.eclipse.smarthome.core.thing</artifactId>
-            <version>0.9.0.b6</version>
+            <version>0.9.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -234,12 +234,12 @@
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-manager</artifactId>
-            <version>1.4</version>
+            <version>1.5-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-gatt-parser</artifactId>
-            <version>1.8.1</version>
+            <version>1.8.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
