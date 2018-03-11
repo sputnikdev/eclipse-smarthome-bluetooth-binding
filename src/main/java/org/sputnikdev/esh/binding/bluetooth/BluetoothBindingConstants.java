@@ -77,5 +77,6 @@ public final class BluetoothBindingConstants {
     public static final String DEFAULT_EXTENSION_FOLDER = "/home/pi/.bluetooth_smart";
     public static final String DEFAULT_ADAPTERS_LOCATION = "Bluetooth Adapters";
     public static final String DEFAULT_DEVICES_LOCATION = "Bluetooth Devices";
+    public static final int DEFAULT_RSS_REPORTING_RATE = 5000;
 
 }

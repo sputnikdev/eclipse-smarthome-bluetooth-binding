@@ -113,5 +113,12 @@
             <default>RECOGNISED_ONLY</default>
             <required>true</required>
         </parameter>
+        <parameter name="rssiReportingRate" type="integer" min="0" unit="ms">
+            <label>RSSI reporting rate</label>
+            <description>Controls how frequently RSSI should be reported. This parameter does not affect the "indoor positioning system". Important note: setting it to a low value might cause an excessive CPU load.</description>
+            <default>5000</default>
+            <advanced>true</advanced>
+            <required>true</required>
+        </parameter>
     </config-description>
 </binding:binding>

@@ -41,6 +41,7 @@ public class BluetoothBindingConfig {
     private boolean combinedDevicesEnabled = true;
     private Set<String> advancedGattServices = new HashSet<>();
     private String gattParsingStrategy = GattParsingStrategy.RECOGNISED_ONLY.name();
+    private long rssiReportingRate = BluetoothBindingConstants.DEFAULT_RSS_REPORTING_RATE;
 
     public BluetoothBindingConfig() {
         advancedGattServices.addAll(Arrays.asList("00001800-0000-1000-8000-00805f9b34fb",
@@ -212,4 +213,21 @@ public class BluetoothBindingConfig {
         this.combinedDevicesEnabled = combinedDevicesEnabled;
     }
 
+    /**
+     * Returns how frequently RSSI is reported (in ms). This parameter does not affect
+     * the "indoor positioning system". Important note: setting it to a low value might cause an excessive CPU load.
+     * @return reporting rate in milliseconds
+     */
+    public long getRssiReportingRate() {
+        return rssiReportingRate;
+    }
+
+    /**
+     * Controls how frequently RSSI should be reported (in ms). This parameter does not affect
+     * the "indoor positioning system". Important note: setting it to a low value might cause an excessive CPU load.
+     * @param rssiReportingRate reporting rate in milliseconds
+     */
+    public void setRssiReportingRate(long rssiReportingRate) {
+        this.rssiReportingRate = rssiReportingRate;
+    }
 }
