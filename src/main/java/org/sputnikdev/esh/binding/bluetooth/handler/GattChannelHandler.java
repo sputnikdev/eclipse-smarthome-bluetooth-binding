@@ -14,6 +14,7 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -146,21 +147,22 @@ abstract class GattChannelHandler implements ChannelHandler {
     }
 
     private void buildMissingChannels(Collection<Field> fields) {
-        List<Field> toBuild = fields.stream()
-                .filter(field -> getChannel(field) == null
-                        && !field.isFlagField()
+        Map<Boolean, List<Field>> partitioned = fields.stream()
+                .filter(field -> !field.isFlagField()
                         && (!field.isUnknown() && !field.isSystem() || handler.getBindingConfig().discoverUnknown()))
-                .collect(Collectors.toList());
-
-        if (toBuild.isEmpty()) {
-            return;
+                .collect(Collectors.partitioningBy(field -> getChannel(field) == null));
+        
+        if (!partitioned.get(Boolean.TRUE).isEmpty()) {
+            BluetoothChannelBuilder builder = new BluetoothChannelBuilder(handler);
+            logger.debug("Building missing channels for fields: {} / {}", url, fields.size());
+            List<Channel> channels = builder.buildChannels(url, partitioned.get(Boolean.TRUE), advanced, readOnly);
+            channels.forEach(channel -> handler.registerChannel(channel.getUID(), this));
+            handler.updateThingWithChannels(channels);
         }
 
-        BluetoothChannelBuilder builder = new BluetoothChannelBuilder(handler);
-        logger.debug("Building missing channels for fields: {} / {}", url, fields.size());
-        List<Channel> channels = builder.buildChannels(url, toBuild, advanced, readOnly);
-        channels.forEach(channel -> handler.registerChannel(channel.getUID(), this));
-        handler.updateThingWithChannels(channels);
+        partitioned.get(Boolean.FALSE).forEach(field -> {
+            handler.registerChannel(getChannel(field).getUID(), this);
+        });
     }
 
     private void buildMissingBinaryChannel() {

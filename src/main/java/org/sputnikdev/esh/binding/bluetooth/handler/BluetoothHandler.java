@@ -89,7 +89,13 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     @Override
     public void channelUnlinked(ChannelUID channelUID) {
         super.channelUnlinked(channelUID);
-        findHandler(channelUID, ChannelHandler::unlinked);
+        findHandler(channelUID, channelHandler -> {
+            if (channelHandlers.get(channelHandler).stream()
+                    .filter(uid -> isLinked(uid.getIdWithoutGroup()) && !uid.equals(channelUID))
+                    .count() == 0) {
+                channelHandler.unlinked();
+            }
+        });
     }
 
     @Override
