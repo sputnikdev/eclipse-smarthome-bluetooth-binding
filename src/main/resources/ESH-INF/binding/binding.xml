@@ -99,13 +99,13 @@
             <description><![CDATA[Controls how recognised and unrecognised GATT attributes are handled:
                 <ul>
                     <li><b>Recognised only (Default value)</b> - Human-readable channels are created for only recognised attributes, all other "unknown" attributes are ignored</li>
-                    <li><b>Recognised + unrecognised as binary</b> - Human-readable channels are created for recognised attributes, binary channels are created for all other "unknown" attributes</li>
+                    <li><b>Recognised + System + Unknown + unrecognised as binary</b> - Human-readable channels are created for recognised, system and unknown attributes, binary channels are created for all other "unknown" attributes</li>
                     <li><b>All as binary</b> - All channels are binary</li>
                 </ul>
             ]]></description>
             <options>
                 <option value="RECOGNISED_ONLY">Recognised only</option>
-                <option value="UNRECOGNISED_AS_BINARY">Recognised + unrecognised as binary</option>
+                <option value="UNRECOGNISED_AS_BINARY">Recognised + System + Unknown + unrecognised as binary</option>
                 <option value="ALL_BINARY">All as binary</option>
             </options>
             <limitToOptions>true</limitToOptions>
