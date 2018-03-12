@@ -148,7 +148,8 @@ abstract class GattChannelHandler implements ChannelHandler {
     private void buildMissingChannels(Collection<Field> fields) {
         List<Field> toBuild = fields.stream()
                 .filter(field -> getChannel(field) == null
-                        && !field.isFlagField() && (!field.isUnknown() || handler.getBindingConfig().discoverUnknown()))
+                        && !field.isFlagField()
+                        && (!field.isUnknown() && !field.isSystem() || handler.getBindingConfig().discoverUnknown()))
                 .collect(Collectors.toList());
 
         if (toBuild.isEmpty()) {
