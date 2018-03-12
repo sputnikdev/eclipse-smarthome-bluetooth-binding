@@ -48,8 +48,12 @@ class BluetoothChannelBuilder {
 
         for (List<Field> fieldList : fieldsMapping.values()) {
             if (fieldList.size() > 1) {
-                logger.warn("Multiple fields with the same name found: {} / {}. Skipping these fields.",
-                        url, fieldList.get(0).getName());
+                if (fieldList.get(0).isFlagField()) {
+                    logger.debug("Skipping flags field: {}. Skipping these fields.", url);
+                } else {
+                    logger.warn("Multiple fields with the same name found: {} / {}. Skipping these fields.",
+                            url, fieldList.get(0).getName());
+                }
                 continue;
             }
             Field field = fieldList.get(0);
@@ -82,7 +86,7 @@ class BluetoothChannelBuilder {
                 advanced ? "advncd" : "simple",
                 readOnly ? "readable" : "writable",
                 characteristicURL.getCharacteristicUUID(),
-                BluetoothUtils.encodeFieldName(field.getName()));
+                BluetoothUtils.encodeFieldID(field));
 
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BluetoothBindingConstants.BINDING_ID, channelType);
         return ChannelBuilder.create(channelUID, getAcceptedItemType(field))

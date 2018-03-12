@@ -18,8 +18,10 @@ import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An utility class which contains some common functionality for the bluetooth handlers.
@@ -121,9 +123,12 @@ public final class BluetoothUtils {
         return field.getEnumerations() != null && field.getEnumerations().getEnumerations() != null;
     }
 
-    public static String encodeFieldName(String fieldName) {
+    public static String encodeFieldID(Field field) {
         try {
-            return Base64.getEncoder().encodeToString(fieldName.getBytes("UTF-8")).replace("=", "");
+            String requirements = Optional.ofNullable(field.getRequirements())
+                    .orElse(Collections.emptyList()).stream().collect(Collectors.joining());
+            return Base64.getEncoder().encodeToString((field.getName() + requirements)
+                    .getBytes("UTF-8")).replace("=", "");
         } catch (UnsupportedEncodingException e) {
             throw new IllegalStateException(e);
         }

@@ -83,7 +83,7 @@ public class CharacteristicChannelTypeProvider implements ChannelTypeProvider {
 
         if (gattParser.isKnownCharacteristic(characteristicUUID)) {
             Map<String, List<Field>> fieldsMapping = gattParser.getFields(characteristicUUID).stream()
-                    .collect(Collectors.groupingBy(field -> BluetoothUtils.encodeFieldName(field.getName())));
+                    .collect(Collectors.groupingBy(BluetoothUtils::encodeFieldID));
 
             List<Field> fields = fieldsMapping.get(fieldName);
             if (fields.size() > 1) {
@@ -177,6 +177,10 @@ public class CharacteristicChannelTypeProvider implements ChannelTypeProvider {
                 case "org.bluetooth.unit.electric_conductance.siemens": return "µS/cm";
                 case "org.bluetooth.unit.percentage": return "%%";
                 case "org.bluetooth.unit.illuminance.lux": return "lux";
+                case "org.bluetooth.unit.mass.pound": return "lb";
+                case "org.bluetooth.unit.mass.kilogram": return "kg";
+                case "org.bluetooth.unit.length.meter": return "m";
+                case "org.bluetooth.unit.length.inch": return "in";
                 default: return null;
             }
         }
