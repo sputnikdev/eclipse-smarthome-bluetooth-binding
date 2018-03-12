@@ -1,5 +1,13 @@
 # Xiaomi devices
 
+## Table of contents
+
+* [Important note for all Xiaomi devices](#important-note-for-all-xiaomi-devices)
+* [Mi Flora plant sensor](#mi-flora-plant-sensor)
+* [Temperature and Humidity sensor](#temperature-and-humidity-sensor)
+* [Mi Smart Scale](#mi-smart-scale)
+* [Mi Smart Kettle](#mi-smart-kettle)
+
 The following devices have been tested with the Bluetooth Binding. Some other devices might also work with the binding out of the box.
 
 ## Important note for all Xiaomi devices
@@ -80,3 +88,25 @@ The device advertises 3 channels (refreshed every 5-10 seconds):
 * Humidity
 * Battery level
 
+## Mi Smart Scale
+
+Measures the smallest weight changes with a high-precision G-shaped sensor made of manganese steel.
+
+![Mi Smart Scale thing](xiaomi-mi-smart-scale.png?raw=true "Mi Smart Scale")
+
+### Device discovery
+
+It should be detected automatically, once a Mi Scale device is in a range of a bluetooth adapter. An item in the PaperUI inbox should be created accordingly.
+
+![Mi Smart Scale thing](xiaomi-mi-smart-scale-thing.png?raw=true "Mi Smart Scale thing")
+
+### Device channels
+
+Mi Smart Scale provides the following channels:
+
+* Weight (either in lb or kg)
+* The time of the last measurement (split on 6 channels for each time component: Year, Month, Day, Hour, Minute, Second)
+
+## Mi Smart Kettle
+
+//TODO
