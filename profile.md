@@ -10,6 +10,10 @@ EXTRA_JAVA_OPTS_COMMON="-Djava.rmi.server.hostname=192.168.0.2 -Dcom.sun.managem
 Set up ssh to forward the port:
 
 ```sh
+ssh -v -D 9696 user@hostname
+
+or
+
 ssh -N -f -L 9199:localhost:9199 user@hostname
 ```
 
