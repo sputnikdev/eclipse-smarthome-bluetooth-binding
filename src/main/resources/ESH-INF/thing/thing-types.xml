@@ -120,7 +120,7 @@
         <state readOnly="true" pattern="%.2f m"/>
     </channel-type>
 
-    <channel-type id="last-updated">
+    <channel-type id="last-updated" advanced="true">
         <item-type>DateTime</item-type>
         <label>Last updated</label>
         <description>Date and time of the last activity</description>
