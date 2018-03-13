@@ -148,10 +148,9 @@ abstract class GattChannelHandler implements ChannelHandler {
 
     private void buildMissingChannels(Collection<Field> fields) {
         Map<Boolean, List<Field>> partitioned = fields.stream()
-                .filter(field -> !field.isFlagField()
-                        && (!field.isUnknown() && !field.isSystem() || handler.getBindingConfig().discoverUnknown()))
+                .filter(this::channelRequired)
                 .collect(Collectors.partitioningBy(field -> getChannel(field) == null));
-        
+
         if (!partitioned.get(Boolean.TRUE).isEmpty()) {
             BluetoothChannelBuilder builder = new BluetoothChannelBuilder(handler);
             logger.debug("Building missing channels for fields: {} / {}", url, fields.size());
@@ -163,6 +162,11 @@ abstract class GattChannelHandler implements ChannelHandler {
         partitioned.get(Boolean.FALSE).forEach(field -> {
             handler.registerChannel(getChannel(field).getUID(), this);
         });
+    }
+
+    private boolean channelRequired(Field field) {
+        return !field.isFlagField()
+                && (!field.isUnknown() && !field.isSystem() || handler.getBindingConfig().discoverUnknown());
     }
 
     private void buildMissingBinaryChannel() {
