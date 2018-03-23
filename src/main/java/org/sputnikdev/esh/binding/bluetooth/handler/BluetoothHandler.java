@@ -22,7 +22,9 @@ import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
@@ -41,6 +43,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     private final URL url;
     private final Map<ChannelHandler, Set<ChannelUID>> channelHandlers = new ConcurrentHashMap<>();
     private final Object updateLock = new Object();
+    private CompletableFuture<Void> initFuture;
 
     BluetoothHandler(Thing thing, BluetoothContext bluetoothContext) {
         super(thing);
@@ -51,7 +54,11 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
     @Override
     public void initialize() {
         super.initialize();
-        initChannelHandlers();
+
+        initFuture = getGovernor().whenReady(governor -> {
+            initChannelHandlers();
+            return null;
+        });
     }
 
     @Override
@@ -64,6 +71,7 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         logger.info("Disposing Abstract Bluetooth Handler");
         super.dispose();
         disposeChannelHandlers();
+        Optional.ofNullable(initFuture).ifPresent(future -> future.cancel(true));
     }
 
     @Override

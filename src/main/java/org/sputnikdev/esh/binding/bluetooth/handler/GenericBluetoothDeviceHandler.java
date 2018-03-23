@@ -17,6 +17,8 @@ import org.sputnikdev.esh.binding.bluetooth.internal.DeviceConfig;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A bluetooth handler which represents generic bluetooth devices (prior bluetooth v4.0).
@@ -27,6 +29,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         implements GenericBluetoothDeviceListener, GovernorListener {
 
     private Logger logger = LoggerFactory.getLogger(GenericBluetoothDeviceHandler.class);
+    private CompletableFuture<Void> setAliasFuture;
 
     private final BooleanTypeChannelHandler onlineHandler = new BooleanTypeChannelHandler(
             this, BluetoothBindingConstants.CHANNEL_ONLINE) {
@@ -117,9 +120,6 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         deviceGovernor.addGovernorListener(this);
         deviceGovernor.setBlockedControl(false);
 
-        // init channel handlers
-        super.initialize();
-
         Configuration conf = editConfiguration();
         if (conf.get("onlineTimeout") == null) {
             conf.put("onlineTimeout", getBindingConfig().getInitialOnlineTimeout());
@@ -128,9 +128,14 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
         updateDevice(getConfig());
 
-        if (deviceGovernor.isReady()) {
-            deviceGovernor.setAlias(thing.getLabel());
-        }
+        // init channel handlers
+        super.initialize();
+
+        setAliasFuture = deviceGovernor.<DeviceGovernor, Void>whenReady(governor -> {
+            governor.setAlias(thing.getLabel());
+            return null;
+        });
+
         updateStatus(deviceGovernor.isOnline() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
     }
 
@@ -140,6 +145,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         deviceGovernor.removeGenericBluetoothDeviceListener(this);
         deviceGovernor.removeGovernorListener(this);
         deviceGovernor.setConnectionControl(false);
+        Optional.ofNullable(setAliasFuture).ifPresent(future -> future.cancel(true));
         super.dispose();
     }
 
