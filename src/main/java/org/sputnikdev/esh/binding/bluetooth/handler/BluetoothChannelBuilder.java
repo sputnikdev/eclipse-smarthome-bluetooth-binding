@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.spec.Field;
+import org.sputnikdev.bluetooth.gattparser.spec.FieldFormat;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
@@ -57,9 +58,18 @@ class BluetoothChannelBuilder {
                 continue;
             }
             Field field = fieldList.get(0);
-            channels.add(buildFieldChannel(url, field, label == null ? field.getName() : label, advanced, readOnly));
+            if (isFieldSupported(field)) {
+                channels.add(buildFieldChannel(url, field,
+                        label == null ? field.getName() : label, advanced, readOnly));
+            } else {
+                logger.warn("GATT field is not supported: {} / {} / {}", url, field.getName(), field.getFormat());
+            }
         }
         return channels;
+    }
+
+    private boolean isFieldSupported(Field field) {
+        return field.getFormat() != null;
     }
 
     protected Channel buildBinaryChannel(URL characteristicURL, boolean advanced, boolean readOnly) {
@@ -77,6 +87,12 @@ class BluetoothChannelBuilder {
 
     private Channel buildFieldChannel(URL characteristicURL, Field field, String label,
                                       boolean advanced, boolean readOnly) {
+        String acceptedType = getAcceptedItemType(field);
+        if (acceptedType == null) {
+            // unknown field format
+            return null;
+        }
+
         URL channelURL = characteristicURL.copyWithField(field.getName());
         logger.debug("Building a new channel for a field: {}", channelURL);
 
@@ -114,6 +130,11 @@ class BluetoothChannelBuilder {
     }
 
     private String getAcceptedItemType(Field field) {
+        FieldFormat format = field.getFormat();
+        if (format == null) {
+            // unknown format
+            return null;
+        }
         switch (field.getFormat().getType()) {
             case BOOLEAN: return "Switch";
             case UINT:
@@ -123,7 +144,8 @@ class BluetoothChannelBuilder {
             case UTF8S:
             case UTF16S: return "String";
             case STRUCT: return "Binary";
-            default: throw new IllegalStateException("Unknown field format type");
+            // unsupported format
+            default: return null;
         }
     }
 
