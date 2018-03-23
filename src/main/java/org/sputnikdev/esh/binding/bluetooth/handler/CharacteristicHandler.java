@@ -50,8 +50,13 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
     @Override
     public void attach() {
         CharacteristicGovernor characteristicGovernor = getGovernor();
-        if (BluetoothUtils.hasNotificationAccess(flags)) {
+        boolean notifiable = BluetoothUtils.hasNotificationAccess(flags);
+        boolean readable = BluetoothUtils.hasReadAccess(flags);
+        if (notifiable) {
             characteristicGovernor.addValueListener(this);
+            if (readable) {
+                updateChannels();
+            }
         } else if (BluetoothUtils.hasReadAccess(flags)) {
             updateChannels();
             scheduleUpdateChannels();
