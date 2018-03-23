@@ -23,6 +23,8 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -36,6 +38,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
     private Logger logger = LoggerFactory.getLogger(AdapterHandler.class);
     private ScheduledFuture<?> syncTask;
+    private CompletableFuture<Void> setAliasFuture;
 
     private final SingleChannelHandler<Boolean, OnOffType> discoveringHandler = new BooleanTypeChannelHandler(
             AdapterHandler.this, BluetoothBindingConstants.CHANNEL_DISCOVERING) {
@@ -56,6 +59,11 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         void updateThing(Boolean value) {
             getGovernor().setDiscoveringControl(value);
         }
+
+        @Override
+        Boolean getDefaultValue() {
+            return true;
+        }
     };
 
     /**
@@ -73,19 +81,22 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
 
     @Override
     public void initialize() {
-        super.initialize();
+        // make sure we subscribe to events first (before channel initialization)
         AdapterGovernor adapterGovernor = getGovernor();
         adapterGovernor.addGovernorListener(this);
         adapterGovernor.addAdapterListener(this);
 
-        adapterGovernor.setDiscoveringControl(true);
+        // initialize all channel handlers
+        super.initialize();
 
         lastUpdatedChanged(Instant.now());
         updateDevice(getConfig());
 
-        if (adapterGovernor.isReady()) {
-            adapterGovernor.setAlias(thing.getLabel());
-        }
+        setAliasFuture = adapterGovernor.<AdapterGovernor, Void>whenReady(governor -> {
+            governor.setAlias(thing.getLabel());
+            return null;
+        });
+
         updateStatus(adapterGovernor.isReady() ? ThingStatus.ONLINE : ThingStatus.OFFLINE);
 
         syncTask = scheduler.scheduleAtFixedRate(() -> {
@@ -103,6 +114,7 @@ public class AdapterHandler extends BluetoothHandler<AdapterGovernor>
         AdapterGovernor adapterGovernor = getGovernor();
         adapterGovernor.removeAdapterListener(this);
         adapterGovernor.removeGovernorListener(this);
+        Optional.ofNullable(setAliasFuture).ifPresent(future -> future.cancel(true));
         logger.info("Adapter handler has been disposed");
     }
 
