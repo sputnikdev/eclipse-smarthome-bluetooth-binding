@@ -39,7 +39,6 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     private Logger logger = LoggerFactory.getLogger(BluetoothDeviceHandler.class);
     private ScheduledFuture<?> syncTask;
-    private boolean servicesResolved;
     private final Set<URL> advertisedServices = new HashSet<>();
     private final ReentrantLock advertisedServicesLock = new ReentrantLock();
     private final ReentrantLock serviceResolvedLock = new ReentrantLock();
@@ -47,7 +46,7 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
             BluetoothDeviceHandler.this, BluetoothBindingConstants.CHANNEL_CONNECTED) {
         @Override Boolean getValue() {
-            return getGovernor().isReady() && getGovernor().isConnected();
+            return getGovernor().isReady() && getGovernor().isServicesResolved();
         }
     };
 
@@ -87,8 +86,9 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     @Override
     public void initialize() {
-        super.initialize();
         getGovernor().addBluetoothSmartDeviceListener(this);
+
+        super.initialize();
 
         syncTask = scheduler.scheduleAtFixedRate(() -> {
             connectionControlHandler.updateChannel(connectionControlHandler.getValue());
@@ -108,21 +108,17 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
     }
 
     @Override
-    public void connected() {
-        connectedHandler.updateChannel(true);
-        connectedAdapterHandler.updateChannel(connectedAdapterHandler.getValue());
-        updateLocationChannels();
-    }
-
-    @Override
-    public void disconnected() {
+    public void servicesUnresolved() {
         connectedHandler.updateChannel(false);
         connectedAdapterHandler.updateChannel(connectedAdapterHandler.getValue());
     }
 
     @Override
     public void servicesResolved(List<GattService> gattServices) {
-        if (!servicesResolved && serviceResolvedLock.tryLock()) {
+        connectedHandler.updateChannel(true);
+        connectedAdapterHandler.updateChannel(connectedAdapterHandler.getValue());
+        updateLocationChannels();
+        if (serviceResolvedLock.tryLock()) {
             try {
                 logger.info("Building channels for services: {}", gattServices.size());
                 List<Channel> channels = new ArrayList<>();
@@ -137,7 +133,6 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
                             chnnls.forEach(channel -> registerChannel(channel.getUID(), handler));
                         });
                 updateThingWithChannels(channels);
-                servicesResolved = true;
             } finally {
                 serviceResolvedLock.unlock();
             }
