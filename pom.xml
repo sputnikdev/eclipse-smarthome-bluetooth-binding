@@ -5,7 +5,7 @@
 
     <groupId>org.sputnikdev</groupId>
     <artifactId>org.eclipse.smarthome.binding.bluetooth</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Eclipse SmartHome Bluetooth Binding</description>
@@ -45,7 +45,7 @@
         <url>https://github.com/sputnikdev/eclipse-smarthome-bluetooth-binding/tree/master</url>
         <connection>scm:git:git@github.com:sputnikdev/eclipse-smarthome-bluetooth-binding.git</connection>
         <developerConnection>scm:git:git@github.com:sputnikdev/eclipse-smarthome-bluetooth-binding.git</developerConnection>
-        <tag>org.eclipse.smarthome.binding.bluetooth-1.1.5</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
