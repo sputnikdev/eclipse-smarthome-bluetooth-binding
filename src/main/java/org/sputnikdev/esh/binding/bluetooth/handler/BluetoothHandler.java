@@ -10,6 +10,7 @@ import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.State;
+import org.eclipse.smarthome.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
@@ -168,6 +169,11 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         }).add(channelUID);
     }
 
+    protected ChannelHandler findHandler(ChannelUID channelUID) {
+        return channelHandlers.entrySet().stream().filter(entry -> entry.getValue().contains(channelUID))
+                .findAny().map(Map.Entry::getKey).orElse(null);
+    }
+
     protected void addChannelHandlers(List<SingleChannelHandler> handlers) {
         handlers.forEach(handler -> {
             ChannelUID channelUID = new ChannelUID(thing.getUID(), handler.getChannelID());
@@ -218,8 +224,16 @@ class BluetoothHandler<T extends BluetoothGovernor> extends BaseThingHandler {
         return thing.getChannel(uid);
     }
 
+    protected List<Channel> getChannels() {
+        return thing.getChannels();
+    }
+
     protected ScheduledExecutorService getScheduler() {
         return scheduler;
+    }
+
+    protected void updateStatus(ThingStatusDetail detail, String message) {
+        updateStatus(getGovernor().isReady() ? ThingStatus.ONLINE : ThingStatus.OFFLINE, detail, message);
     }
 
     private void initChannelHandlers() {

@@ -49,8 +49,8 @@ class BluetoothChannelBuilder {
 
         for (List<Field> fieldList : fieldsMapping.values()) {
             if (fieldList.size() > 1) {
-                if (fieldList.get(0).isFlagField()) {
-                    logger.debug("Skipping flags field: {}. Skipping these fields.", url);
+                if (fieldList.get(0).isFlagField() || fieldList.get(0).isOpCodesField()) {
+                    logger.debug("Skipping flags/op codes field: {}.", url);
                 } else {
                     logger.warn("Multiple fields with the same name found: {} / {}. Skipping these fields.",
                             url, fieldList.get(0).getName());
@@ -107,7 +107,7 @@ class BluetoothChannelBuilder {
         ChannelTypeUID channelTypeUID = new ChannelTypeUID(BluetoothBindingConstants.BINDING_ID, channelType);
         return ChannelBuilder.create(channelUID, getAcceptedItemType(field))
                 .withType(channelTypeUID)
-                .withProperties(getFieldProperties(field))
+                .withProperties(getFieldProperties(characteristicURL, field))
                 .withLabel(label)
                 .build();
     }
@@ -123,9 +123,12 @@ class BluetoothChannelBuilder {
                 advanced ? "-advanced" : "", readOnly ? "-readonly" : "-editable");
     }
 
-    private static Map<String, String> getFieldProperties(Field field) {
+    private static Map<String, String> getFieldProperties(URL characteristicURL, Field field) {
         Map<String, String> properties = new HashMap<>();
         properties.put(BluetoothBindingConstants.PROPERTY_FIELD_NAME, field.getName());
+        properties.put(BluetoothBindingConstants.PROPERTY_SERVICE_UUID, characteristicURL.getServiceUUID());
+        properties.put(BluetoothBindingConstants.PROPERTY_CHARACTERISTIC_UUID,
+                characteristicURL.getCharacteristicUUID());
         return properties;
     }
 
@@ -143,7 +146,7 @@ class BluetoothChannelBuilder {
             case FLOAT_IEE11073: return "Number";
             case UTF8S:
             case UTF16S: return "String";
-            case STRUCT: return "Binary";
+            case STRUCT: return "String";
             // unsupported format
             default: return null;
         }

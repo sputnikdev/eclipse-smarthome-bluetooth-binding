@@ -13,17 +13,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
-import org.sputnikdev.bluetooth.gattparser.FieldHolder;
 import org.sputnikdev.bluetooth.gattparser.GattRequest;
+import org.sputnikdev.bluetooth.gattparser.spec.Enumeration;
+import org.sputnikdev.bluetooth.gattparser.spec.Field;
 import org.sputnikdev.bluetooth.manager.CharacteristicGovernor;
 import org.sputnikdev.bluetooth.manager.ValueListener;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.internal.BluetoothUtils;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -38,9 +41,8 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
     private Logger logger = LoggerFactory.getLogger(CharacteristicHandler.class);
 
     private final Set<CharacteristicAccessType> flags;
-    private byte[] data;
     private ScheduledFuture<?> updateTask;
-    private CompletableFuture<byte[]> readyFuture;
+    private CompletableFuture<byte[]> authFuture;
 
     CharacteristicHandler(BluetoothHandler handler, URL characteristicURL, Set<CharacteristicAccessType> flags) {
         super(handler, characteristicURL, !BluetoothUtils.hasWriteAccess(flags));
@@ -68,8 +70,8 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
         if (updateTask != null) {
             updateTask.cancel(true);
         }
-        if (readyFuture != null) {
-            readyFuture.cancel(true);
+        if (authFuture != null) {
+            authFuture.cancel(true);
         }
         CharacteristicGovernor characteristicGovernor = getGovernor();
         characteristicGovernor.removeValueListener(this);
@@ -78,8 +80,8 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
     @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
         if (!getGovernor().isReady()) {
-            //TODO set status
-            //handler.updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.COMMUNICATION_ERROR, "Device is not ready");
+            handler.updateStatus(ThingStatusDetail.COMMUNICATION_ERROR,
+                    "Could not update bluetooth device. Device is not ready");
             return;
         }
         if (command instanceof State) {
@@ -94,14 +96,15 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
                     }
                 }
             } catch (Exception ex) {
-                logger.warn("Could not update bluetooth device: {}", ex.getMessage());
+                handler.updateStatus(ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Could not update bluetooth device. Error: " + ex.getMessage());
+                logger.warn("Could not update bluetooth device: {} : {}", url, ex.getMessage());
             }
         }
     }
 
     @Override
     public void changed(byte[] value) {
-        data = value;
         dataChanged(value, false);
     }
 
@@ -118,11 +121,10 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
     }
 
     private void updateChannels() {
-        if (readyFuture == null || readyFuture.isDone()) {
-            readyFuture = getGovernor().whenReady(CharacteristicGovernor::read);
-            readyFuture.thenAccept(newData -> {
+        if (authFuture == null || authFuture.isDone()) {
+            authFuture = getGovernor().whenAuthenticated(CharacteristicGovernor::read);
+            authFuture.thenAccept(newData -> {
                 logger.debug("Updating channels: {}", url);
-                data = newData;
                 dataChanged(newData, false);
             }).exceptionally(ex -> {
                 logger.warn("Error occurred while updating channels: {} : {}", url, ex.getMessage());
@@ -141,34 +143,32 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
     }
 
     private void updateThing(String fieldName, State state) {
+        //TODO maybe we should check if the characteristic is authenticated?
         if (BluetoothUtils.hasWriteAccess(flags)) {
             BluetoothGattParser gattParser = handler.getParser();
 
-            if (data == null && BluetoothUtils.hasReadAccess(flags)) {
-                data = getGovernor().read();
-            }
-
-            GattRequest request;
-            if (data == null || data.length == 0) {
-                request = gattParser.prepare(url.getCharacteristicUUID());
-            } else {
-                request = gattParser.prepare(url.getCharacteristicUUID(), data);
-            }
-
-            updateHolder(request.getFieldHolder(fieldName), state);
-            data = gattParser.serialize(request);
-            if (!getGovernor().write(data)) {
-                handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.COMMUNICATION_ERROR,
-                        "Could not write data to characteristic: " + url);
+            GattRequest request = gattParser.prepare(url.getCharacteristicUUID());
+            try {
+                updateHolder(request, fieldName, state);
+                byte[] data = gattParser.serialize(request);
+                if (!getGovernor().write(data)) {
+                    handler.updateStatus(ThingStatusDetail.COMMUNICATION_ERROR,
+                            "Could not write data to characteristic: " + url);
+                }
+            } catch (NumberFormatException ex) {
+                logger.error("Could not parse characteristic value: {} : {}", url, state, ex);
+                handler.updateStatus(ThingStatusDetail.COMMUNICATION_ERROR,
+                        "Could not parse characteristic value: " + url + " : " + state);
             }
         }
     }
 
     private void updateThing(State state) {
+        //TODO maybe we should check if the characteristic is authenticated?
         if (BluetoothUtils.hasWriteAccess(flags)) {
             BluetoothGattParser gattParser = handler.getParser();
 
-            data = gattParser.serialize(state.toString(), 16);
+            byte[] data = gattParser.serialize(state.toString(), 16);
             if (!getGovernor().write(data)) {
                 handler.updateStatus(ThingStatus.ONLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                         "Could not write data to characteristic: " + url);
@@ -176,18 +176,47 @@ class CharacteristicHandler extends GattChannelHandler implements ValueListener 
         }
     }
 
-    private static void updateHolder(FieldHolder holder, State state) {
-        if (holder.getField().getFormat().isBoolean()) {
-            holder.setBoolean(convert(state, OnOffType.class) == OnOffType.ON);
-        } else if (holder.getField().getFormat().isReal()) {
-            DecimalType decimalType = (DecimalType) convert(state, DecimalType.class);
-            holder.setInteger(decimalType.intValue());
-        } else if (holder.getField().getFormat().isDecimal()) {
-            DecimalType decimalType = (DecimalType) convert(state, DecimalType.class);
-            holder.setDouble(decimalType.doubleValue());
-        } else if (holder.getField().getFormat().isString()) {
-            StringType textType = (StringType) convert(state, StringType.class);
-            holder.setString(textType.toString());
+    private void updateHolder(GattRequest request, String fieldName, State state) {
+        Field field = request.getFieldHolder(fieldName).getField();
+        if (field.getFormat().isBoolean()) {
+            request.setField(fieldName, convert(state, OnOffType.class) == OnOffType.ON);
+        } else {
+            if (field.hasEnumerations()) {
+                // check if we can use enumerations
+                Enumeration enumeration = getEnumeration(field, state);
+                if (enumeration != null) {
+                    request.setField(fieldName, enumeration);
+                    return;
+                }
+                // fall back to simple types
+            }
+            if (field.getFormat().isReal()) {
+                DecimalType decimalType = (DecimalType) convert(state, DecimalType.class);
+                request.setField(fieldName, decimalType.longValue());
+            } else if (field.getFormat().isDecimal()) {
+                DecimalType decimalType = (DecimalType) convert(state, DecimalType.class);
+                request.setField(fieldName, decimalType.doubleValue());
+            } else if (field.getFormat().isString()) {
+                StringType textType = (StringType) convert(state, StringType.class);
+                request.setField(fieldName, textType.toString());
+            } else if (field.getFormat().isStruct()) {
+                StringType textType = (StringType) convert(state, StringType.class);
+                String text = textType.toString().trim();
+                if (text.startsWith("[")) {
+                    request.setField(fieldName, handler.getParser().serialize(text, 16));
+                } else {
+                    request.setField(fieldName, new BigInteger(text));
+                }
+            }
+        }
+    }
+
+    private Enumeration getEnumeration(Field field, State state) {
+        try {
+            return field.getEnumeration(new BigInteger(convert(state, DecimalType.class).toString()));
+        } catch (NumberFormatException ex) {
+            logger.debug("Could not not convert state to enumeration: {} : {} : {} ", url, field.getName(), state);
+            return null;
         }
     }
 

@@ -34,11 +34,19 @@ public class DeviceConfig {
         }
     }
 
+    public enum AuthenticationStrategy {
+        NONE,
+        AUTO,
+        PIN_CODE
+    }
+
     private Integer onlineTimeout;
     private String rssiFilterType;
     private Integer txPowerMeasured;
     private String connectionStrategy;
     private String preferredBluetoothAdapter;
+    private String authenticationStrategy;
+    private String pinCodeDefinition;
 
     /**
      * Returns a timeout value which is used to determine if a bluetooth device gets offline (in seconds).
@@ -138,5 +146,37 @@ public class DeviceConfig {
      */
     public void setPreferredBluetoothAdapter(String preferredBluetoothAdapter) {
         this.preferredBluetoothAdapter = preferredBluetoothAdapter;
+    }
+
+    /**
+     * Returns authentication strategy that is used when devices get connected.
+     * @return authentication strategy
+     */
+    public String getAuthenticationStrategy() {
+        return authenticationStrategy;
+    }
+
+    /**
+     * Sets an authentication strategy that is used when devices get connected.
+     * @param authenticationStrategy a new authentication strategy
+     */
+    public void setAuthenticationStrategy(String authenticationStrategy) {
+        this.authenticationStrategy = authenticationStrategy;
+    }
+
+    /**
+     * Returns pin code definition. Format: characteristic UUI=pin code, e.g:
+     * <ul>
+     *     <li>decimal number: 0000eee3-0000-1000-8000-00805f9b34fb=7638516547981525249</li>
+     *     <li>hex array: 0000eee3-0000-1000-8000-00805f9b34fb=[01, c1, 61, 6d, 54, 76, 01, 6a]</li>
+     * </ul>
+     * @return pin code definition
+     */
+    public String getPinCodeDefinition() {
+        return pinCodeDefinition;
+    }
+
+    public void setPinCodeDefinition(String pinCodeDefinition) {
+        this.pinCodeDefinition = pinCodeDefinition;
     }
 }

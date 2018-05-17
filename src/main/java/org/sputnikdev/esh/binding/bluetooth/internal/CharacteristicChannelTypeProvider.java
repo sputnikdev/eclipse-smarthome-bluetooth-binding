@@ -94,7 +94,7 @@ public class CharacteristicChannelTypeProvider implements ChannelTypeProvider {
 
             Field field = fields.get(0);
 
-            List<StateOption> options = getSateOptions(field);
+            List<StateOption> options = getStateOptions(field);
 
             String itemType = getItemType(field);
 
@@ -125,7 +125,7 @@ public class CharacteristicChannelTypeProvider implements ChannelTypeProvider {
         return null;
     }
 
-    private static List<StateOption> getSateOptions(Field field) {
+    private static List<StateOption> getStateOptions(Field field) {
         return hasEnums(field)
                 ? field.getEnumerations().getEnumerations().stream()
                     .map(enumeration -> new StateOption(String.valueOf(enumeration.getKey()), enumeration.getValue()))

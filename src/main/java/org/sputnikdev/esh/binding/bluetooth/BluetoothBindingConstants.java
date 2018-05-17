@@ -50,6 +50,7 @@ public final class BluetoothBindingConstants {
     public static final String CHANNEL_LOCATION = "location";
     public static final String CHANNEL_ADAPTER = "adapter";
     public static final String CHANNEL_CONNECTED_ADAPTER = "connected-adapter";
+    public static final String CHANNEL_AUTHENTICATED = "authenticated";
 
     // Thing (device) properties
     public static final String PROPERTY_ADDRESS = "Address";

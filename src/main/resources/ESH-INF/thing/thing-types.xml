@@ -41,6 +41,7 @@
         <channels>
             <channel id="online" typeId="online"/>
             <channel id="connected" typeId="connected"/>
+            <channel id="authenticated" typeId="authenticated"/>
             <channel id="connection-control" typeId="connection-control"/>
             <channel id="connected-adapter" typeId="connected-adapter"/>
             <channel id="rssi" typeId="rssi"/>
@@ -73,6 +74,13 @@
         <item-type>Switch</item-type>
         <label>Connected</label>
         <description>Indicates whether device is connected</description>
+        <state readOnly="true"/>
+    </channel-type>
+
+    <channel-type id="authenticated">
+        <item-type>Switch</item-type>
+        <label>Authenticated</label>
+        <description>Indicates whether device is authenticated</description>
         <state readOnly="true"/>
     </channel-type>
 

@@ -56,6 +56,10 @@
             <label>Connection</label>
             <description>Connection parameters</description>
         </parameter-group>
+        <parameter-group name="authentication">
+            <label>Authentication</label>
+            <description>Authentication parameters</description>
+        </parameter-group>
         <parameter-group name="presence-detection">
             <label>Presence detection</label>
             <description>Presence detetion parameters</description>
@@ -124,6 +128,38 @@
             <description>Note: it is used only when "Preferred adapter" connection strategy is selected.</description>
             <required>false</required>
             <limitToOptions>false</limitToOptions>
+        </parameter>
+
+        <parameter name="authenticationStrategy" type="text" groupName="authentication">
+            <label>Authentication strategy</label>
+            <description><![CDATA[Authentication strategy to be used when device "connection control" is enabled. The following strategies are supported:
+                    <ul>
+                        <li>None: authentication is not performed.</li>
+                        <li>Auto: authentication is performed automatically based on GATT specification.</li>
+                        <li>Pin code: pin code is entered by user. See "Pin code" parameter.</li>
+                    </ul>
+                ]]>
+            </description>
+            <default>AUTOMATIC</default>
+            <options>
+                <option value="NONE">None</option>
+                <option value="AUTO">Auto</option>
+                <option value="PIN_CODE">Pin code</option>
+            </options>
+            <default>AUTO</default>
+            <required>true</required>
+        </parameter>
+
+        <parameter name="pinCodeDefinition" type="text" groupName="authentication" pattern="^([0-9A-Fa-f]{4,8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})=((\d+)|(\[[0-9A-Fa-f]{2}(,\s?[0-9A-Fa-f]{2}){0,19}\]))$">
+            <label>Pin code</label>
+            <description><![CDATA[Device pin code definition in the following format: characteristic UUID=pin code. For example:
+                    <ul>
+                        <li>decimal number: 0000eee3-0000-1000-8000-00805f9b34fb=7638516547981525249</li>
+                        <li>hex array: 0000eee3-0000-1000-8000-00805f9b34fb=[01, c1, 61, 6d, 54, 76, 01, 6a]</li>
+                    </ul>
+                ]]>
+            </description>
+            <required>false</required>
         </parameter>
 
     </config-description>

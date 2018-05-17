@@ -3,6 +3,7 @@ package org.sputnikdev.esh.binding.bluetooth.handler;
 import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.RssiKalmanFilter;
@@ -167,7 +168,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
     @Override
     public void rssiChanged(short rssi) {
         rssiHandler.updateChannel((int) rssi);
-        updateLocationChannels();
+        updateLocationHandlers();
     }
 
     @Override
@@ -219,10 +220,13 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         }
     }
 
-    protected void updateLocationChannels() {
+    protected void updateLocationHandlers() {
         estimatedDistance.updateChannel(estimatedDistance.getValue());
         locationHandler.updateChannel(locationHandler.getValue());
         adapterHandler.updateChannel(adapterHandler.getValue());
     }
 
+    protected void updateStatus(ThingStatusDetail detail, String message) {
+        updateStatus(getGovernor().isOnline() ? ThingStatus.ONLINE : ThingStatus.OFFLINE, detail, message);
+    }
 }

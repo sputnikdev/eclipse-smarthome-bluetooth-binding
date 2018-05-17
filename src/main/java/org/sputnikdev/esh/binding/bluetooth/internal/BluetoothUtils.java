@@ -9,7 +9,9 @@ import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.UnDefType;
 import org.sputnikdev.bluetooth.URL;
+import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.gattparser.FieldHolder;
+import org.sputnikdev.bluetooth.gattparser.spec.Enumeration;
 import org.sputnikdev.bluetooth.gattparser.spec.Field;
 import org.sputnikdev.bluetooth.manager.CombinedGovernor;
 import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
@@ -17,6 +19,7 @@ import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Optional;
@@ -103,24 +106,36 @@ public final class BluetoothUtils {
         return Long.toHexString(Long.valueOf(longUUID.substring(0, 8), 16)).toUpperCase();
     }
 
-    public static State convert(FieldHolder holder) {
+    public static State convert(BluetoothGattParser parser, FieldHolder holder) {
         State state;
         if (holder.isValueSet()) {
             if (holder.getField().getFormat().isBoolean()) {
                 state = holder.getBoolean() ? OnOffType.ON : OnOffType.OFF;
-            } else if (holder.getField().getFormat().isNumber()) {
-                state = new DecimalType(holder.getBigDecimal());
             } else {
-                state = new StringType(holder.getString());
+                // check if we can use enumerations
+                if (holder.getField().hasEnumerations()) {
+                    Enumeration enumeration = holder.getEnumeration();
+                    if (enumeration != null) {
+                        if (holder.getField().getFormat().isNumber()) {
+                            return new DecimalType(new BigDecimal(enumeration.getKey()));
+                        } else {
+                            return new StringType(enumeration.getKey().toString());
+                        }
+                    }
+                    // fall back to simple types
+                }
+                if (holder.getField().getFormat().isNumber()) {
+                    state = new DecimalType(holder.getBigDecimal());
+                } else if (holder.getField().getFormat().isStruct()) {
+                    state = new StringType(parser.parse(holder.getBytes(), 16));
+                } else {
+                    state = new StringType(holder.getString());
+                }
             }
         } else {
             state = UnDefType.UNDEF;
         }
         return state;
-    }
-
-    public static boolean hasEnums(Field field) {
-        return field.getEnumerations() != null && field.getEnumerations().getEnumerations() != null;
     }
 
     public static String encodeFieldID(Field field) {

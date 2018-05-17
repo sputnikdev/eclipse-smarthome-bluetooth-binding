@@ -229,23 +229,41 @@
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-utils</artifactId>
-            <version>1.12</version>
+            <version>1.13</version>
         </dependency>
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-manager</artifactId>
-            <version>1.5.2-SNAPSHOT</version>
+            <version>1.5.2</version>
         </dependency>
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-gatt-parser</artifactId>
-            <version>1.9.1</version>
+            <version>1.9.2</version>
         </dependency>
 
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>1.7.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>1.7.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

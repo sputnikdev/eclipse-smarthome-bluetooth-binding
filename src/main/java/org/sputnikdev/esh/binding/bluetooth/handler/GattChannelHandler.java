@@ -44,7 +44,7 @@ abstract class GattChannelHandler implements ChannelHandler {
     }
 
     @Override
-    public void init() { /* do nothing */}
+    public void init() { /* do nothing */ }
 
     @Override
     public final void linked() {
@@ -121,7 +121,8 @@ abstract class GattChannelHandler implements ChannelHandler {
     }
 
     private List<Channel> buildFieldChannels() {
-        List<Field> fields = handler.getParser().getFields(url.getCharacteristicUUID());
+        List<Field> fields = handler.getParser().getFields(url.getCharacteristicUUID())
+                .stream().filter(this::channelRequired).collect(Collectors.toList());
         BluetoothChannelBuilder builder = new BluetoothChannelBuilder(handler);
         logger.debug("Building channels for fields: {} / {}", url, fields.size());
         return builder.buildChannels(url, fields, advanced, readOnly);
@@ -165,7 +166,7 @@ abstract class GattChannelHandler implements ChannelHandler {
     }
 
     private boolean channelRequired(Field field) {
-        return !field.isFlagField()
+        return !field.isFlagField() && !field.isOpCodesField()
                 && (!field.isUnknown() && !field.isSystem() || handler.getBindingConfig().discoverUnknown());
     }
 
@@ -178,7 +179,7 @@ abstract class GattChannelHandler implements ChannelHandler {
     }
 
     private void updateState(Channel channel, FieldHolder holder) {
-        handler.updateState(channel.getUID(), BluetoothUtils.convert(holder));
+        handler.updateState(channel.getUID(), BluetoothUtils.convert(handler.getParser(), holder));
     }
 
     private void updateBinaryState(byte[] data) {
@@ -186,6 +187,8 @@ abstract class GattChannelHandler implements ChannelHandler {
         if (channel != null) {
             handler.updateState(channel.getUID().getIdWithoutGroup(),
                     new StringType(handler.getBluetoothContext().getParser().parse(data, 16)));
+        } else {
+            logger.error("Could not find binary channel: {}", url);
         }
     }
 
