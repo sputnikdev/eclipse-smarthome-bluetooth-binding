@@ -54,6 +54,21 @@
         <config-description-ref uri="thing-type:bluetooth:combined"/>
     </thing-type>
 
+    <thing-type id="beacon">
+        <label>Beacon Bluetooth device</label>
+        <description>This thing is intended to be used to track Bluetooth device presence.</description>
+        <channels>
+            <channel id="online" typeId="online"/>
+            <channel id="rssi" typeId="rssi"/>
+            <channel id="tx-power" typeId="tx-power"/>
+            <channel id="estimated-distance" typeId="estimated-distance"/>
+            <channel id="adapter" typeId="nearest-adapter"/>
+            <channel id="location" typeId="location"/>
+            <channel id="last-updated" typeId="last-updated"/>
+        </channels>
+        <config-description-ref uri="thing-type:bluetooth:combined"/>
+    </thing-type>
+
     <!--<thing-type id="ble-dedicated" listed="false">-->
         <!--<label>BLE enabled Bluetooth device</label>-->
         <!--<description>This is a simple bluetooth "thing" that represents a physical bluetooth device found by a single bluetooth adapter.</description>-->

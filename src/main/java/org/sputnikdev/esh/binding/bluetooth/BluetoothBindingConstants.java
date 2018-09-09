@@ -22,12 +22,10 @@ public final class BluetoothBindingConstants {
     public static final ThingTypeUID THING_TYPE_ADAPTER = new ThingTypeUID(BINDING_ID, "adapter");
     public static final ThingTypeUID THING_TYPE_GENERIC = new ThingTypeUID(BINDING_ID, "generic");
     public static final ThingTypeUID THING_TYPE_BLE = new ThingTypeUID(BINDING_ID, "ble");
-    public static final ThingTypeUID THING_TYPE_GENERIC_DEDICATED = new ThingTypeUID(BINDING_ID, "generic-dedicated");
-    public static final ThingTypeUID THING_TYPE_BLE_DEDICATED = new ThingTypeUID(BINDING_ID, "ble-dedicated");
+    public static final ThingTypeUID THING_TYPE_BEACON = new ThingTypeUID(BINDING_ID, "beacon");
 
     public static final Set<ThingTypeUID> SUPPORTED_THING_TYPES = Collections.unmodifiableSet(Stream.of(
-            THING_TYPE_ADAPTER, THING_TYPE_GENERIC, THING_TYPE_BLE, THING_TYPE_GENERIC_DEDICATED,
-            THING_TYPE_BLE_DEDICATED).collect(Collectors.toSet()));
+            THING_TYPE_ADAPTER, THING_TYPE_GENERIC, THING_TYPE_BLE, THING_TYPE_BEACON).collect(Collectors.toSet()));
 
     // List of all Channel ids
     public static final String CHANNEL_CHARACTERISTIC = "characteristic";

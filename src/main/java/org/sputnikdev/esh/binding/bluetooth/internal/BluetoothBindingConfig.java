@@ -42,6 +42,7 @@ public class BluetoothBindingConfig {
     private Set<String> advancedGattServices = new HashSet<>();
     private String gattParsingStrategy = GattParsingStrategy.RECOGNISED_ONLY.name();
     private long rssiReportingRate = BluetoothBindingConstants.DEFAULT_RSS_REPORTING_RATE;
+    private boolean backgroundDiscovery;
 
     public BluetoothBindingConfig() {
         advancedGattServices.addAll(Arrays.asList("00001800-0000-1000-8000-00805f9b34fb",
@@ -230,4 +231,27 @@ public class BluetoothBindingConfig {
     public void setRssiReportingRate(long rssiReportingRate) {
         this.rssiReportingRate = rssiReportingRate;
     }
+
+    /**
+     * If enabled, adapters and devices are discovered automatically, otherwise discovery process has to be triggered
+     * manually. If you live on a busy road, your inbox can be cluttered with bluetooth devices,
+     * disable this config to stop adding devices into your inbox. This config does not affect actual discovery
+     * status of your adapters, it only prevents adding discovered devices into your inbox.
+     * @return true if enabled
+     */
+    public boolean isBackgroundDiscovery() {
+        return backgroundDiscovery;
+    }
+
+    /**
+     * If enabled, adapters and devices are discovered automatically, otherwise discovery process has to be triggered
+     * manually. If you live on a busy road, your inbox can be cluttered with bluetooth devices,
+     * disable this config to stop adding devices into your inbox. This config does not affect actual discovery
+     * status of your adapters, it only prevents adding discovered devices into your inbox.
+     * @param backgroundDiscovery true if enabled, false otherwise
+     */
+    public void setBackgroundDiscovery(boolean backgroundDiscovery) {
+        this.backgroundDiscovery = backgroundDiscovery;
+    }
+
 }

@@ -8,6 +8,8 @@ import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.eclipse.smarthome.core.thing.ThingUID;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.UnDefType;
+import org.sputnikdev.bluetooth.AddressType;
+import org.sputnikdev.bluetooth.AddressUtils;
 import org.sputnikdev.bluetooth.URL;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.gattparser.FieldHolder;
@@ -18,6 +20,7 @@ import org.sputnikdev.bluetooth.manager.DiscoveredDevice;
 import org.sputnikdev.bluetooth.manager.transport.CharacteristicAccessType;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Base64;
@@ -42,22 +45,22 @@ public final class BluetoothUtils {
     }
 
     public static ThingUID getDeviceUID(DiscoveredDevice device) {
-        return getDeviceUID(device.getURL(), device.isBleEnabled());
-    }
-
-    public static ThingUID getDeviceUID(URL url, boolean bleEnabled) {
+        URL url = device.getURL();
+        boolean bleEnabled = device.isBleEnabled();
         ThingTypeUID thingTypeUID;
-        if (isCombined(url)) {
+        AddressType addressType = AddressUtils.guessDeviceAddressType(url);
+        String address;
+        if (addressType == AddressType.RESOLVABLE || addressType == AddressType.NON_RESOLVABLE) {
+            thingTypeUID = BluetoothBindingConstants.THING_TYPE_BEACON;
+            //TODO possibly add some service UUIDs as well
+            address = encodeBeaconUID(url.copyWithDevice(null, "name", device.getName()).getDeviceCompositeAddress());
+        } else {
             thingTypeUID = bleEnabled
                     ? BluetoothBindingConstants.THING_TYPE_BLE :
                     BluetoothBindingConstants.THING_TYPE_GENERIC;
-            return new ThingUID(thingTypeUID, getUID(url.getDeviceAddress()));
-        } else {
-            thingTypeUID = bleEnabled
-                    ? BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED :
-                    BluetoothBindingConstants.THING_TYPE_GENERIC_DEDICATED;
-            return new ThingUID(thingTypeUID, getAdapterUID(url), getUID(url.getDeviceAddress()));
+            address = url.getDeviceAddress();
         }
+        return new ThingUID(thingTypeUID, getUID(address));
     }
 
     public static URL getURL(Thing thing) {
@@ -66,7 +69,13 @@ public final class BluetoothUtils {
         } else {
             String adapterAddress = Optional.of(thing).map(Thing::getBridgeUID).map(ThingUID::getId)
                     .map(BluetoothUtils::getAddressFromUID).orElse(CombinedGovernor.COMBINED_ADDRESS);
-            return new URL(adapterAddress, getAddressFromUID(thing.getUID().getId()));
+            String device;
+            if (BluetoothBindingConstants.THING_TYPE_BEACON.equals(thing.getThingTypeUID())) {
+                device = decodeBeaconUID(thing.getUID().getId());
+            } else {
+                device = getAddressFromUID(thing.getUID().getId());
+            }
+            return new URL("/" + adapterAddress + "/" + device);
         }
     }
 
@@ -155,5 +164,21 @@ public final class BluetoothUtils {
 
     private static String getAddressFromUID(String uid) {
         return uid.replaceAll(MAC_PART_REGEXP, "$1:");
+    }
+
+    private static String decodeBeaconUID(String uid) {
+        try {
+            return new String(DatatypeConverter.parseHexBinary(uid), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static String encodeBeaconUID(String uid) {
+        try {
+            return DatatypeConverter.printHexBinary(uid.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

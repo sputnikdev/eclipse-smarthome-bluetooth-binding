@@ -75,6 +75,14 @@
             <!--<limitToOptions>false</limitToOptions>-->
             <default>(?!)</default>
         </parameter>
+        <parameter name="backgroundDiscovery" type="boolean">
+            <label>Enable background discovery</label>
+            <description>If enabled, adapters and devices are discovered automatically, otherwise discovery process has to be triggered manually.
+                If you live on a busy road, your inbox can be cluttered with bluetooth devices, disable this config to stop adding devices into your inbox.
+                This config does not affect actual discovery status of your adapters, it only prevents adding discovered devices into your inbox.
+            </description>
+            <default>true</default>
+        </parameter>
         <parameter name="extensionFolder" type="text">
             <label>GATT services and characteristics extension folder</label>
             <description><![CDATA[

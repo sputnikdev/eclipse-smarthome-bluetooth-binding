@@ -11,6 +11,8 @@ import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -24,10 +26,12 @@ import org.sputnikdev.bluetooth.manager.transport.BluetoothObjectFactory;
 import org.sputnikdev.esh.binding.bluetooth.BluetoothBindingConstants;
 import org.sputnikdev.esh.binding.bluetooth.discovery.BluetoothDiscoveryServiceImpl;
 import org.sputnikdev.esh.binding.bluetooth.handler.AdapterHandler;
+import org.sputnikdev.esh.binding.bluetooth.handler.BeaconBluetoothDeviceHandler;
 import org.sputnikdev.esh.binding.bluetooth.handler.BluetoothDeviceHandler;
 import org.sputnikdev.esh.binding.bluetooth.handler.GenericBluetoothDeviceHandler;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -45,6 +49,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     private ServiceRegistration<BluetoothManager> bluetoothManagerServiceRegistration;
     private ServiceRegistration<BluetoothGattParser> gattParserServiceRegistration;
     private BluetoothContext bluetoothContext;
+    private ConfigurationAdmin configurationAdmin;
 
     @Override
     public boolean supportsThingType(ThingTypeUID thingTypeUID) {
@@ -55,6 +60,7 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
     protected void activate(ComponentContext componentContext) {
         super.activate(componentContext);
         BluetoothBindingConfig config = getConfig(componentContext);
+        updateDiscoveryServiceProperties(config);
         bluetoothContext = new BluetoothContext(getBluetoothManager(config), getGattParser(config), config);
         registerBluetoothObjectFactories();
         publishServices();
@@ -79,16 +85,16 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
             return new AdapterHandler(thing, bluetoothContext);
         }
 
-        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)
-                || thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC_DEDICATED)) {
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_GENERIC)) {
             return new GenericBluetoothDeviceHandler(thing, bluetoothContext);
         }
 
-        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)
-                || thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE_DEDICATED)) {
-            BluetoothDeviceHandler bluetoothDeviceHandler =
-                    new BluetoothDeviceHandler(thing, bluetoothContext);
-            return bluetoothDeviceHandler;
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BLE)) {
+            return new BluetoothDeviceHandler(thing, bluetoothContext);
+        }
+
+        if (thingTypeUID.equals(BluetoothBindingConstants.THING_TYPE_BEACON)) {
+            return new BeaconBluetoothDeviceHandler(thing, bluetoothContext);
         }
 
         return null;
@@ -107,6 +113,15 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         if (bluetoothContext != null) {
             bluetoothContext.getManager().unregisterFactory(bluetoothObjectFactory);
         }
+    }
+
+    @Reference(unbind = "unregisterConfigurationAdmin", cardinality = ReferenceCardinality.MANDATORY)
+    protected void registerConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
+        this.configurationAdmin = configurationAdmin;
+    }
+
+    protected void unregisterConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
+        this.configurationAdmin = null;
     }
 
     private static BluetoothBindingConfig getConfig(ComponentContext componentContext) {
@@ -171,6 +186,20 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
         try {
             return BeanUtilsBean.getInstance().getPropertyUtils().describe(config);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void updateDiscoveryServiceProperties(BluetoothBindingConfig config) {
+        try {
+            Configuration configuration = configurationAdmin.getConfiguration("discovery.bluetooth", null);
+            Dictionary<String, Object> props = configuration.getProperties();
+            if (props == null) {
+                props = new Hashtable<>();
+            }
+            props.put("background", config.isBackgroundDiscovery());
+            configuration.update(props);
+        } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
