@@ -346,7 +346,8 @@
                             org.sputnikdev.bluetooth,
                             org.sputnikdev.bluetooth.manager,
                             org.sputnikdev.bluetooth.manager.transport,
-                            org.sputnikdev.bluetooth.gattparser
+                            org.sputnikdev.bluetooth.gattparser,
+                            org.sputnikdev.bluetooth.gattparser.spec
                         </_exportcontents>
                     </instructions>
                     <niceManifest>true</niceManifest>
