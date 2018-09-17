@@ -15,7 +15,8 @@ public class DeviceConfig {
         NONE(0, 0),
         FAST(0.125, 0.8),
         MODERATE(0.125, 5),
-        SLOW(0.125, 15);
+        SLOW(0.125, 15),
+        VERY_SLOW(0.125, 120);
 
         private final double processNoise;
         private final double measurmentNoise;
@@ -47,6 +48,7 @@ public class DeviceConfig {
     private String preferredBluetoothAdapter;
     private String authenticationStrategy;
     private String pinCodeDefinition;
+    private Boolean preventLocationUpdate;
 
     /**
      * Returns a timeout value which is used to determine if a bluetooth device gets offline (in seconds).
@@ -179,4 +181,25 @@ public class DeviceConfig {
     public void setPinCodeDefinition(String pinCodeDefinition) {
         this.pinCodeDefinition = pinCodeDefinition;
     }
+
+    /**
+     * If selected (true), device location does not get updated. Useful when the Indoor Positioning system
+     * struggles to determine location of a device that is equally spaced between multiple adapters.
+     * The location is manually defined by user.
+     * @return true if location does not get updated
+     */
+    public Boolean getPreventLocationUpdate() {
+        return preventLocationUpdate;
+    }
+
+    /**
+     * If set to true, device location does not get updated. Useful when the Indoor Positioning system
+     * struggles to determine location of a device that is equally spaced between multiple adapters.
+     * The location is manually defined by user.
+     * @param preventLocationUpdate true if location does not get updated
+     */
+    public void setPreventLocationUpdate(Boolean preventLocationUpdate) {
+        this.preventLocationUpdate = preventLocationUpdate;
+    }
+
 }

@@ -130,8 +130,7 @@ public class BluetoothDiscoveryServiceImpl extends AbstractDiscoveryService
 
         DiscoveryResultBuilder builder = DiscoveryResultBuilder
                 .create(thingUID)
-                .withLabel((device.getAlias() != null ? device.getAlias() : device.getName())
-                        + " [" + AddressUtils.guessDeviceAddressType(device.getURL()) + "]")
+                .withLabel((device.getAlias() != null ? device.getAlias() : device.getName()))
                 .withTTL(DISCOVERY_RATE_SEC * 3)
                 .withRepresentationProperty(device.getURL().getDeviceAddress())
                 .withBridge(bridgeUID);

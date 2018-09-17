@@ -18,6 +18,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParser;
 import org.sputnikdev.bluetooth.gattparser.BluetoothGattParserFactory;
 import org.sputnikdev.bluetooth.manager.BluetoothManager;
@@ -45,6 +47,8 @@ import java.util.Map;
  */
 @Component(service = ThingHandlerFactory.class, immediate = true, name = "binding.bluetooth")
 public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
+
+    private Logger logger = LoggerFactory.getLogger(BluetoothHandlerFactory.class);
 
     private ServiceRegistration<BluetoothManager> bluetoothManagerServiceRegistration;
     private ServiceRegistration<BluetoothGattParser> gattParserServiceRegistration;
@@ -142,11 +146,16 @@ public class BluetoothHandlerFactory extends BaseThingHandlerFactory {
                 .build();
     }
 
-    private static BluetoothGattParser getGattParser(BluetoothBindingConfig config) {
+    private BluetoothGattParser getGattParser(BluetoothBindingConfig config) {
         BluetoothGattParser gattParser = BluetoothGattParserFactory.getDefault();
-        File extensionFolderFile = new File(config.getExtensionFolder());
+        String extensionFolder = config.getExtensionFolder();
+        logger.info("Loading custom GATT specification from folder: {}", extensionFolder);
+        File extensionFolderFile = new File(extensionFolder);
         if (extensionFolderFile.exists() && extensionFolderFile.isDirectory()) {
+            logger.info("Extension folder exists: {}", extensionFolder);
             gattParser.loadExtensionsFromFolder(config.getExtensionFolder());
+        } else {
+            logger.warn("Extension folder does not exist, ignoring it: {}", extensionFolder);
         }
         return gattParser;
     }

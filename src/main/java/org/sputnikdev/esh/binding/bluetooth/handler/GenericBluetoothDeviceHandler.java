@@ -31,6 +31,7 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     private Logger logger = LoggerFactory.getLogger(GenericBluetoothDeviceHandler.class);
     private CompletableFuture<Void> setAliasFuture;
+    private boolean preventLocationUpdate = true;
 
     private final BooleanTypeChannelHandler onlineHandler = new BooleanTypeChannelHandler(
             this, BluetoothBindingConstants.CHANNEL_ONLINE) {
@@ -125,6 +126,12 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
         if (conf.get("onlineTimeout") == null) {
             conf.put("onlineTimeout", getBindingConfig().getInitialOnlineTimeout());
             updateConfiguration(conf);
+        }
+
+        DeviceConfig config = conf.as(DeviceConfig.class);
+        preventLocationUpdate = config.getPreventLocationUpdate();
+        if (preventLocationUpdate) {
+            locationHandler.updateChannel(getThing().getLocation());
         }
 
         updateDevice(getConfig());
@@ -222,7 +229,9 @@ public class GenericBluetoothDeviceHandler extends BluetoothHandler<DeviceGovern
 
     protected void updateLocationHandlers() {
         estimatedDistance.updateChannel(estimatedDistance.getValue());
-        locationHandler.updateChannel(locationHandler.getValue());
+        if (!preventLocationUpdate) {
+            locationHandler.updateChannel(locationHandler.getValue());
+        }
         adapterHandler.updateChannel(adapterHandler.getValue());
     }
 

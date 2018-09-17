@@ -75,6 +75,15 @@
                 this timeout (seconds).</description>
         </parameter>
 
+        <parameter name="preventLocationUpdate" type="boolean" groupName="indoor-positioning-system">
+            <label>Prevent location update</label>
+            <description>If selected, device location does not get updated. Useful when the Indoor Positioning system
+                struggles to determine location of a device that is equally spaced between multiple adapters.
+                The location is manually defined by user.
+            </description>
+            <default>false</default>
+        </parameter>
+
         <parameter name="rssiFilterType" type="text" groupName="indoor-positioning-system">
             <label>Received signal strength indication (RSSI) filter</label>
             <description>RSSI filter removes noise and spikes from RSSI in order to allow for better estimation
@@ -88,7 +97,8 @@
                 <option value="NONE">None</option>
                 <option value="FAST">Fast (less latency, more spikes)</option>
                 <option value="MODERATE">Moderate (medium latency, medium spikes)</option>
-                <option value="SLOW">Slow (more latency, less spikes</option>
+                <option value="SLOW">Slow (more latency, less spikes)</option>
+                <option value="VERY_SLOW">Very slow (used for stationary devices)</option>
             </options>
             <required>true</required>
         </parameter>
