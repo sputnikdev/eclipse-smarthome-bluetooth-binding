@@ -1,42 +1,51 @@
 
-# Bluetooth Binding
+# Advanced Bluetooth Binding
 
-The Bluetooth binding brings support for bluetooth devices into Eclipse SmartHome Framework. 
+The Advanced Bluetooth binding brings support for Bluetooth technology into Eclipse SmartHome Framework.
 The following main use cases are supported by the binding:
 
 * **Presence detection**. Bluetooth devices can be monitored whether they are in range of a bluetooth adapter (or multiple bluetooth adapters). 
 This feature makes it possible to detect if an object or a person enters or leaves a building or a room.
-* **Indoor positioning**. Location of a bluetooth device can be identified based on estimated distance between the device and adapters. 
+* **Indoor positioning**. Location of a Bluetooth device can be identified based on estimated distance between the device and adapters.
 This feature allows you to locate things (like your phone or keys) in your house or detect who exactly is in a room.  
 * **Comprehensive support for Bluetooth Low Energy (Bluetooth Smart) devices**. If a bluetooth device supports the Bluetooth specification 4.0, 
 then the standard [GATT services and characteristics](https://www.bluetooth.com/specifications/gatt) can be automatically recognized and 
 corresponding thing channels be created for each GATT characteristic and its GATT fields. This feature allows you to connect 
-Bluetooth Smart sensors and other bluetooth devices.
-* **Custom built (non-standard) BLE bluetooth devices support**. A custom built bluetooth device can be automatically recognized like a standard one 
+Bluetooth Smart sensors and other Bluetooth devices.
+* **Custom built (non-standard) BLE bluetooth devices support**. A custom built Bluetooth device can be automatically recognized like a standard one
 by specifying a folder on the system disk with custom GATT service and characteristic definitions in XML files.
+
+Table of contents
+=================
+
+<!--ts-->
+   * [Installation](#installation)
+   * [Supported Things and Discovery](#supported-things-and-discovery)
+      * [Bluetooth Adapter](#bluetooth-adapter)
+      * [Generic Bluetooth device](#generic-bluetooth-device)
+      * [BLE enabled Bluetooth device](#ble-enabled-bluetooth-device)
+      * [Beacon Bluetooth device](#beacon-bluetooth-device)
+   * [Installation](#installation)
+   * [Usage](#usage)
+      * [Presence detection](#presence-detection)
+      * [Indoor positioning](#indoor-positioning)
+      * [Bluetooth Smart (BLE) devices](#bluetooth-smart-(ble)-devices)
+      * [Extending the binding](#extending-the-binding)
+   * [Bluetooth adapters compatibility matrix](#bluetooth-adapters-compatibility-matrix)
+   * [Implementation notes](#implementation-notes)
+   * [Troubleshooting](#troubleshooting)
+   * [Roadmap](#roadmap)
+<!--te-->
+
 
 ## Installation
 
-The Bluetooth binding can be installed via PaperUI and Eclipse MarketPlace. 
-
-1. The Eclipse MarketPlace add-on should be installed first (it might be a bit confusing but the MarketPlace add-on is listed as "Eclipse IoT Market"):
-![Eclipse MarketPlace installation](eclipse-iot-install.png?raw=true "Eclipse MarketPlace installation")
-2. Once the MarketPlace add-on is installed it should be configured to display "betta" and "alpha" listings:
-![Eclipse MarketPlace configuration](eclipse-iot-configure.png?raw=true "Eclipse MarketPlace configuration")
-3. You may also want to enable the "Item Linking - Simple Mode" to automatically create thing items:
-![ESH Enabling Simple Linking](esh-simple-linking.png?raw=true "ESH Enabling Simple Linking")
-4. Depending on what bluetooth adapter you have you will need to install one of the bluetooth transport extensions
-(or all of them if you have both types of bluetooth adapters). See [the compatibility matrix](#bluetooth-adapters-compatibility-matrix) below.
-![Eclipse MarketPlace Bluetooth Transport installation](eclipse-iot-bluetooth-transport.png?raw=true "Eclipse MarketPlace Bluetooth Transport installation")
-**IMPORTANT:** There are some certain prerequisites that must be met for the generic adapter type (TinyB Bluetooth Transport) to work properly. 
-Please follow [these steps](https://github.com/sputnikdev/bluetooth-manager-tinyb#prerequisites) to find out if you need to do anything special.
-5. Finally install the Bluetooth Binding:
-![ESH Bluetooth Binding installation](eclipse-iot-bluetooth-binding.png?raw=true "ESH Bluetooth Binding installation")
+The Bluetooth binding can be installed via PaperUI and Eclipse MarketPlace. Please follow this [guide](installation.md).
 
 ## Supported Things and Discovery
 
 ### Bluetooth Adapter 
-There is only one "thing" that represents all adapters (Generic and BlueGiga) in the Binding.
+There is only one "thing" that represents all adapters (Generic and BlueGiga) in the binding.
 * Generic adapters should appear in the discovery inbox without making any configuration changes:
 ![ESH Bluetooth Binding adaptes discivery](binding-tinyb-adapters-discovery.png?raw=true "ESH Bluetooth Binding adapters discovery") 
 * BlueGiga adapters will appear after configuring serial port regular expression on the binding configuration page:
@@ -51,56 +60,95 @@ Regular expression examples:
     - Matching all serial ports with some exclusions: (?!/dev/ttyACM0|/dev/ttyACM5)((/dev/ttyACM)[0-9]{1,3})
     - Default regular expression is to match nothing: (?!)
 
-Discovered adapters can be added as new things from the PaperUI inbox. It is possible to enable/disable discovery of bluetooth devices for each added adapter thing:
+Discovered adapters can be added as new things from the PaperUI inbox. It is possible to enable/disable discovery of Bluetooth devices for each added adapter thing:
 ![ESH Bluetooth adapter](binding-adapter.png?raw=true "ESH Bluetooth adapter")
-
-For the **Indoor Positioning** feature to work properly, it is advisable that the adapters are physically separated from each other as much as possible. 
-For example, you may want to install bluetooth adapters in each room of your house so that the Binding will be able to sense bluetooth devices in each room.
-Therefore defining a location for each adapter is essential:
-![ESH Bluetooth adapter location](binding-adapter-location.png?raw=true "ESH Bluetooth adapter location")
-
-The location of the nearest adapter will be reported by bluetooth device thing:
-![ESH Bluetooth generic device](binding-generic-device.png?raw=true "ESH Bluetooth generic device")
 
 ### Generic Bluetooth device
 This thing is intended to be used for older versions of bluetooth devices which do not support BLE technology. 
 
-Most of the mobile phones are recognised as a generic bluetooth device:
+Some of mobile phones (older versions) are recognised as generic bluetooth device:
 ![ESH Bluetooth generic device discovery](binding-generic-device-discovery.png?raw=true "ESH Bluetooth generic device discovery")
  
 Only Presence detection and Indoor positioning features are available for this type of Bluetooth devices:
 ![ESH Bluetooth generic device](binding-generic-device.png?raw=true "ESH Bluetooth generic device")
 
 ### BLE enabled Bluetooth device
-This thing is used for newer versions of bluetooth devices which support BLE technology. 
+This thing is used for newer versions of Bluetooth devices which support BLE technology (public and private static address types).
 ![ESH Bluetooth ble device discovery](binding-ble-device-discovery.png?raw=true "ESH Bluetooth ble device discovery")
 
-All the binding features are fully supported by this thing. For example, a standard bluetooth heart rate monitor will look like that:
+All the binding features are fully supported by this thing. For example, a standard Bluetooth heart rate monitor will look like that:
 ![ESH Bluetooth ble device](binding-ble-device.png?raw=true "ESH Bluetooth ble device")
 
 From the picture above you can see a list of channels that are automatically created for all discovered GATT services and characteristics of the heart rate monitor device.
 
-### Special notes for some supported devices
+### Beacon Bluetooth device
+
+This thing is used for some Bluetooth devices that periodically change its addresses (private non-resolvable and resolvable address types) to some random addresses in order to protect privacy of their owners.
+All modern mobile phones (iPhone and Android) evey so often (roughly every 10 minutes) randomly generate a new Bluetooth address and abandon old one making it impossible to track them.
+
+Only Presence detection and Indoor positioning features are available for this type of Bluetooth devices:
+![ESH Beacon Bluetooth device](binding-beacon-device.png?raw=true "ESH Beacon Bluetooth device")
+
+## Usage
+
+### Presence detection
+
+Bluetooth devices are able to broadcast (advertise) some information that can be used to identify them via radio signal, normally it is:
+* Device name
+* Device address
+* Service identifiers and data
+* Manufacturer data
+
+Bluetooth receivers (adapters) periodically scan radio frequencies for advertised messages and report them to the binding.
+By using advertised messages the binding is able automatically discover Bluetooth devices and also track its presence.
+
+The easiest and most effective way to detect presence is to use so called ["Bluetooth beacon"](tags.md) devices.
+
+Normally, most of Bluetooth devices broadcast messages, however there are some devices that try to hide themselves from receivers providing privacy for their owners.
+Many of modern mobile phones (iPhone and Android) evey so often (roughly every 10 minutes) randomly generate a new Bluetooth address and abandon old one making it impossible to track them by its address.
+
+The binding implements an algorithm to match Bluetooth devices not by its address but by a combination of the following:
+* Advertised device name
+* Advertised service UUID/value (not yet implemented)
+
+Moreover, Android and iPhone smartphones also stop advertising (turns off broadcasting so that no any Bluetooth device can find them) once Bluetooth settings screen gets closed.
+Some mobile apps can be used to enforce Bluetooth broadcasting to be always on, they normally called "Bluetooth beacon simulators".
+
+//TODO list some beacon simulators
+
+### Indoor positioning
+
+Bluetooth adapters are capable of sensing strength of radio signal that is transmitted by Bluetooth devices (Received signal strength indication; RSSI).
+The binding is able to calculate estimated distance between adapters and devices by analysing RSSI levels. The closer device to adapter, the stronger signal.
+If multiple adapters are installed into the system, the binding can be used to detect location of Bluetooth device by comparing estimated distance between device and adapters.
+
+Multiple adapters must be used in order the indoor positioning to functional effectively.
+
+It is advisable that adapters are physically separated from each other as much as possible.
+For example, you may want to install Bluetooth adapters in each room of your house so that the binding will be able to locate Bluetooth devices in each room.
+Therefore defining a location for each adapter is essential:
+![ESH Bluetooth adapter location](binding-adapter-location.png?raw=true "ESH Bluetooth adapter location")
+
+The location of the nearest adapter will be reported by Bluetooth device thing:
+![ESH Bluetooth generic device](binding-generic-device.png?raw=true "ESH Bluetooth generic device")
+
+### Bluetooth Smart (BLE) device
 
 * [Xiaomi](xiaomi.md)
-* [Bluetooth tracking tags (beacons)](tags.md)
+* Smart thermostats (todo)
+* Some blinds (todo)
 
-### Extending the binding
+## Extending the binding
 
 In order to add support for new devices, the binding can be extended in several ways - declarative and programmatic:
 
 * [Declarative](gatt-extensions.md)
 * //TODO programmatic
- 
 
-## Presence detection
-//TODO configuration and usage info 
+## Implementation notes
 
-## Indoor positioning
-//TODO configuration and usage info
-
-## Bluetooth Smart (BLE) devices
-//TODO configuration and usage info
+The binding extensively uses [Java Bluetooth Manager](https://github.com/sputnikdev/bluetooth-manager) and [Bluetooth GATT Parser](https://github.com/sputnikdev/bluetooth-gatt-parser).
+More details can be found [here](implementation-notes.md).
 
 ## Bluetooth adapters compatibility matrix
 

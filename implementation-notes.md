@@ -1,38 +1,4 @@
-# bluetooth-binding
-
-WIP: Eclipse SmartHome Bluetooth Binding.
-
-This binding is still work in progress. The main goal is to merge [vkolotov](https://github.com/vkolotov)'s [OH BluetoothSmart binding](https://github.com/openhab/openhab2-addons/pull/2489) and [cdjackson](https://github.com/cdjackson)'s [BLE binding](https://github.com/eclipse/smarthome/pull/3633).
-
-## Objectives and KPIs
-
-### Objectives
-
-1. Merge the two PRs
-2. Productionize the result
-
-### KPIs
-
-1. Flexibility in using different transports, e.g. serial port, DBus or any other (like tinyb).
-2. Extensibility in adding new supported devices (new OH addons), e.g. different sensors and other hardware.
-3. Robustness. Due to the nature of the Bluetooth protocol, we will have to make our bindings stable enough so that people could use it. This is the biggest challenge for this project.
-4. Comprehensive support for Bluetooth GATT specifications. This is a powerful feature which would allow users:
-    - add any device which conforms GATT specification without developing any new binding
-    - add custom made devices by only specifying a path to custom defined GATT specification for a device
-
-## Progress
-1. ~~Extracting the Bluetooth binding from ESH project~~
-2. ~~Splitting BluetoothSmart binding into three bundles: bluetooth bundle and two transport bundles (tinyb and bluegiga)~~
-3. ~~Making adapter things to be bridges~~
-4. ~~Packing tinyb library into the tinyb transport bundle~~
-5. ~~Automatic native libraries management (no more hassle with native lib installation)~~
-6. ~~Implementing/merging BlueGiga transport/bundle.~~
-8. ~~GATT support. Automatic discovery of GATT services and characteristics. Creating ESH items for discovered characteristics. Read/write/notification support~~  
-9. ~~Presence detection (beacon mode).~~
-10. ~~Indoor positioning (shared mode for adapters and devices). - 80% done~~
-11. Stabilizing
-
-## Implementation details
+# Implementation notes
 
 ### 1. Bluetooth URL
 ![bluetooth url](https://user-images.githubusercontent.com/1161883/28913226-6259477e-788b-11e7-8765-6e58667a4a6c.png)
