@@ -15,6 +15,12 @@ You may find that some other tags work with the binding out of the box.
 
 # iTag
 
+**IMPORTANT**: There is a problem with cheap “iTag” trackers - they look all the same, but there are actually two different hardware/firmware they use.
+One of them is bad, you cannot use it at all as it just turns off after some time if not connected (effectively if you leave your house and come back, it will be off).
+Another version is good, but you never know what you are ordering on aliexpress (or similar online store).
+For example, I (author) ordered the most “popular” iTag on aliexpress, the item had around 2000 orders, but it turned out it is a bad unit. And then I ordered another one with only ~200 orders - and it worked great.
+A general advice would be to order different ones from different stores just to try and then do a bulk order.
+
 ## Discovery
 
 Normally these devices are identified automatically by the binding as a "ble" device. Once added in OpenHab/SmartHome they look like that:
@@ -66,3 +72,7 @@ the alarm to find them. This means that most of the time my iTag devices stay di
 TODO. Need to check what happens if a disconnection is triggered by the binding, e.g. will it beep for a min? It might 
 be that if the device detects that the client drops its connection on purpose (not because of link loss), then it might 
 “unlink” itself and forget the client.
+
+# NUT trackers
+
+These trackers are more expensive than iTags but they are proved to work properly. They provide similar capabilities (OH channels) that iTag trackers have.
