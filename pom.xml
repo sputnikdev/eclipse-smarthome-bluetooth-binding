@@ -235,17 +235,17 @@
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-utils</artifactId>
-            <version>1.14-SNAPSHOT</version>
+            <version>1.14</version>
         </dependency>
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-manager</artifactId>
-            <version>1.5.3-SNAPSHOT</version>
+            <version>1.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.sputnikdev</groupId>
             <artifactId>bluetooth-gatt-parser</artifactId>
-            <version>1.9.2</version>
+            <version>1.9.4</version>
         </dependency>
 
         <dependency>
