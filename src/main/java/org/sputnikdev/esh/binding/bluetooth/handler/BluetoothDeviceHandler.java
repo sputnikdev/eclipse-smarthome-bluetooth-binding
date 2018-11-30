@@ -40,8 +40,8 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     private Logger logger = LoggerFactory.getLogger(BluetoothDeviceHandler.class);
     private ScheduledFuture<?> syncTask;
-    private final Set<URL> advertisedServices = new HashSet<>();
-    private final ReentrantLock advertisedServicesLock = new ReentrantLock();
+    private final Set<URL> advertisedData = new HashSet<>();
+    private final ReentrantLock advertisedDataLock = new ReentrantLock();
     private final ReentrantLock serviceResolvedLock = new ReentrantLock();
 
     private final BooleanTypeChannelHandler connectedHandler = new BooleanTypeChannelHandler(
@@ -155,20 +155,30 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
 
     @Override
     public void serviceDataChanged(Map<URL, byte[]> serviceData) {
-        Set<URL> channelsToBuild = Sets.difference(serviceData.keySet(), advertisedServices);
+        Set<URL> channelsToBuild = Sets.difference(serviceData.keySet(), advertisedData);
         if (!channelsToBuild.isEmpty()) {
-            if (advertisedServicesLock.tryLock()) {
+            if (advertisedDataLock.tryLock()) {
                 try {
                     serviceData.entrySet().stream()
-                            .filter(entry -> checkServiceDataHandlerNeeded(entry.getKey())).forEach(entry -> {
+                            .filter(entry -> checkAdvertizedHandlerNeeded(entry.getKey())).forEach(entry -> {
                                 buildServiceHandler(entry.getKey(), entry.getValue());
                             });
-                    advertisedServices.addAll(channelsToBuild);
+                    advertisedData.addAll(channelsToBuild);
                 } finally {
-                    advertisedServicesLock.unlock();
+                    advertisedDataLock.unlock();
                 }
             }
         }
+    }
+
+    @Override
+    public void manufacturerDataChanged(Map<Short, byte[]> manufacturerData) {
+        Map<URL, byte[]> virtualServiceData = manufacturerData.entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> getURL().copyWithService(
+                                String.format("%08X-0000-0000-0000-000000000000", entry.getKey() & 0xFFFF)),
+                        Map.Entry::getValue));
+        serviceDataChanged(virtualServiceData);
     }
 
     @Override
@@ -235,9 +245,9 @@ public class BluetoothDeviceHandler extends GenericBluetoothDeviceHandler
                         || getBindingConfig().discoverUnknown());
     }
 
-    private boolean checkServiceDataHandlerNeeded(URL url) {
+    private boolean checkAdvertizedHandlerNeeded(URL url) {
         return !getBindingConfig().getAdvancedGattServices().contains(url.getServiceUUID().toLowerCase())
-                && !advertisedServices.contains(url)
+                && !advertisedData.contains(url)
                 && (getParser().isKnownCharacteristic(url.getServiceUUID()) || getBindingConfig().discoverUnknown());
     }
 
