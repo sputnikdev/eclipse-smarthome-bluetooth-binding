@@ -9,6 +9,7 @@ import org.sputnikdev.bluetooth.manager.GattService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A multi-channel bluetooth device handler which represents a parsable advertising service data
@@ -42,6 +43,19 @@ class ServiceHandler extends GattChannelHandler implements BluetoothSmartDeviceL
     public void serviceDataChanged(Map<URL, byte[]> serviceData) {
         if (serviceData.containsKey(url.getServiceURL())) {
             byte[] data = serviceData.get(url.getServiceURL());
+            dataChanged(data, true);
+        }
+    }
+
+    @Override
+    public void manufacturerDataChanged(Map<Short, byte[]> manufacturerData) {
+        Map<URL, byte[]> virtualServiceData = manufacturerData.entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> getURL().copyWithService(
+                                String.format("%08X-0000-0000-0000-000000000000", entry.getKey() & 0xFFFF)),
+                        Map.Entry::getValue));
+        if (virtualServiceData.containsKey(url.getServiceURL())) {
+            byte[] data = virtualServiceData.get(url.getServiceURL());
             dataChanged(data, true);
         }
     }
